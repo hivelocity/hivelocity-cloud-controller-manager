@@ -43,7 +43,7 @@ import (
 
 	//"github.com/hivelocity/hivelocity-cloud-controller-manager/internal/hcops"
 	//"github.com/hivelocity/hivelocity-cloud-controller-manager/internal/metrics"
-	"github.com/hivelocity/hivelocity-client-go/hivelocity"
+	hv "github.com/hivelocity/hivelocity-client-go/client"
 	//"github.com/hivelocity/hivelocity-client-go/hivelocity/metadata"
 	cloudprovider "k8s.io/cloud-provider"
 	"k8s.io/klog/v2"
@@ -72,7 +72,7 @@ const (
 )
 
 type cloud struct {
-	client       *hivelocity.Client
+	client       *hv.Client
 	instances    *instances
 	zones        *zones
 	routes       *routes
@@ -158,6 +158,7 @@ func newCloud(config io.Reader) (cloudprovider.Interface, error) {
 
 	klog.Infof("Hivelocity Cloud k8s cloud controller %s started\n", providerVersion)
 
+	/*
 	lbOps := &hcops.LoadBalancerOps{
 		LBClient:      &client.LoadBalancer,
 		CertOps:       &hcops.CertificateOps{CertClient: &client.Certificate},
@@ -171,7 +172,7 @@ func newCloud(config io.Reader) (cloudprovider.Interface, error) {
 	if os.Getenv(hivelocityLoadBalancersEnabledENVVar) == "false" {
 		loadBalancers = nil
 	}
-
+	*/
 	instancesAddressFamily, err := addressFamilyFromEnv()
 	if err != nil {
 		return nil, fmt.Errorf("%s: %w", op, err)
@@ -181,7 +182,7 @@ func newCloud(config io.Reader) (cloudprovider.Interface, error) {
 		client:       client,
 		zones:        newZones(client, nodeName),
 		instances:    newInstances(client, instancesAddressFamily),
-		loadBalancer: loadBalancers,
+	//	loadBalancer: loadBalancers,
 		routes:       nil,
 		networkID:    networkID,
 	}, nil
