@@ -34,7 +34,6 @@ package hivelocity
 
 import (
 	"context"
-	"errors"
 	"fmt"
 	"io"
 	"os"
@@ -42,7 +41,6 @@ import (
 	"strings"
 
 	//"github.com/hivelocity/hivelocity-cloud-controller-manager/internal/hcops"
-	"cloud.google.com/go/compute/metadata"
 	hv "github.com/hivelocity/hivelocity-client-go/client"
 	"github.com/hivelocity/hivelocity-cloud-controller-manager/internal/metrics"
 
@@ -74,10 +72,10 @@ const (
 )
 
 type cloud struct {
-	client    *hv.APIClient
+	client      *hv.APIClient
 	authContext *context.Context
-	instances *instances
-	zones     *zones
+	instances   *instances
+	zones       *zones
 	//routes       *routes
 	//loadBalancer *loadBalancers
 	networkID int
@@ -91,75 +89,74 @@ func newCloud(config io.Reader) (cloudprovider.Interface, error) {
 	if apiKey == "" {
 		return nil, fmt.Errorf("environment variable %q is required", hivelocityApiKeyENVVar)
 	}
+
+	/*
 	nodeName := os.Getenv(nodeNameENVVar)
 	if nodeName == "" {
 		return nil, fmt.Errorf("environment variable %q is required", nodeNameENVVar)
 	}
-
-	/*
-	// start metrics server if enabled (enabled by default)
-	if os.Getenv(hivelocityMetricsEnabledENVVar) != "false" {
-		go metrics.Serve(hivelocityMetricsAddress)
-
-		opts = append(opts, hv.WithInstrumentation(metrics.GetRegistry()))
-	}
-
-	if os.Getenv(hivelocityDebugENVVar) == "true" {
-		opts = append(opts, hv.WithDebugWriter(os.Stderr))
-	}
-	if endpoint := os.Getenv(hivelocityEndpointENVVar); endpoint != "" {
-		opts = append(opts, hv.WithEndpoint(endpoint))
-	}
 	*/
 
-	apiKey := os.Getenv("HIVELOCITY_API_KEY")
-	if apiKey == "" {
-		return nil, fmt.Errorf("Missing environment variable HIVELOCITY_API_KEY")
-	}
+	/*
+		// start metrics server if enabled (enabled by default)
+		if os.Getenv(hivelocityMetricsEnabledENVVar) != "false" {
+			go metrics.Serve(hivelocityMetricsAddress)
+
+			opts = append(opts, hv.WithInstrumentation(metrics.GetRegistry()))
+		}
+
+		if os.Getenv(hivelocityDebugENVVar) == "true" {
+			opts = append(opts, hv.WithDebugWriter(os.Stderr))
+		}
+		if endpoint := os.Getenv(hivelocityEndpointENVVar); endpoint != "" {
+			opts = append(opts, hv.WithEndpoint(endpoint))
+		}
+	*/
+
 	authContext := context.WithValue(context.Background(), hv.ContextAPIKey, hv.APIKey{
 		Key: apiKey,
 	})
 	client := hv.NewAPIClient(hv.NewConfiguration())
 
 	/*
-	var networkID int
-	if v, ok := os.LookupEnv(hivelocityNetworkENVVar); ok {
-		n, _, err := client.Network.Get(context.Background(), v)
-		if err != nil {
-			return nil, fmt.Errorf("%s: %w", op, err)
-		}
-		if n == nil {
-			return nil, fmt.Errorf("%s: Network %s not found", op, v)
-		}
-		networkID = n.ID
+		var networkID int
+		if v, ok := os.LookupEnv(hivelocityNetworkENVVar); ok {
+			n, _, err := client.Network.Get(context.Background(), v)
+			if err != nil {
+				return nil, fmt.Errorf("%s: %w", op, err)
+			}
+			if n == nil {
+				return nil, fmt.Errorf("%s: Network %s not found", op, v)
+			}
+			networkID = n.ID
 
-		networkDisableAttachedCheck, err := getEnvBool(hivelocityNetworkDisableAttachedCheckENVVar)
-		if err != nil {
-			return nil, fmt.Errorf("%s: checking if server is in Network not possible: %w", op, err)
-		}
-		if !networkDisableAttachedCheck {
-			e, err := serverIsAttachedToNetwork(metadataClient, networkID)
+			networkDisableAttachedCheck, err := getEnvBool(hivelocityNetworkDisableAttachedCheckENVVar)
 			if err != nil {
 				return nil, fmt.Errorf("%s: checking if server is in Network not possible: %w", op, err)
 			}
-			if !e {
-				return nil, fmt.Errorf("%s: This node is not attached to Network %s", op, v)
+			if !networkDisableAttachedCheck {
+				e, err := serverIsAttachedToNetwork(metadataClient, networkID)
+				if err != nil {
+					return nil, fmt.Errorf("%s: checking if server is in Network not possible: %w", op, err)
+				}
+				if !e {
+					return nil, fmt.Errorf("%s: This node is not attached to Network %s", op, v)
+				}
 			}
 		}
-	}
-	if networkID == 0 {
-		klog.Infof("%s: %s empty", op, hivelocityNetworkENVVar)
-	}
+		if networkID == 0 {
+			klog.Infof("%s: %s empty", op, hivelocityNetworkENVVar)
+		}
 
-	_, _, err := client.Server.List(context.Background(), hv.ServerListOpts{})
-	if err != nil {
-		return nil, fmt.Errorf("%s: %w", op, err)
-	}
+		_, _, err := client.Server.List(context.Background(), hv.ServerListOpts{})
+		if err != nil {
+			return nil, fmt.Errorf("%s: %w", op, err)
+		}
 
-	lbOpsDefaults, lbDisablePrivateIngress, lbDisableIPv6, err := loadBalancerDefaultsFromEnv()
-	if err != nil {
-		return nil, fmt.Errorf("%s: %w", op, err)
-	}
+		lbOpsDefaults, lbDisablePrivateIngress, lbDisableIPv6, err := loadBalancerDefaultsFromEnv()
+		if err != nil {
+			return nil, fmt.Errorf("%s: %w", op, err)
+		}
 	*/
 
 	klog.Infof("Hivelocity Cloud k8s cloud controller %s started\n", providerVersion)
@@ -185,13 +182,13 @@ func newCloud(config io.Reader) (cloudprovider.Interface, error) {
 	}
 
 	return &cloud{
-		client:    client,
+		client:      client,
 		authContext: &authContext,
-		zones:     newZones(client, nodeName),
-		instances: newInstances(client, instancesAddressFamily),
+		//zones:       newZones(client, nodeName),
+		instances:   newInstances(client, instancesAddressFamily),
 		//	loadBalancer: loadBalancers,
-		routes:    nil,
-		networkID: networkID,
+		//routes:    nil,
+		//networkID: networkID,
 	}, nil
 }
 
@@ -213,10 +210,13 @@ func (c *cloud) Zones() (cloudprovider.Zones, bool) {
 }
 
 func (c *cloud) LoadBalancer() (cloudprovider.LoadBalancer, bool) {
+	return nil, false
+	/* TODO
 	if c.loadBalancer == nil {
 		return nil, false
 	}
 	return c.loadBalancer, true
+	*/
 }
 
 func (c *cloud) Clusters() (cloudprovider.Clusters, bool) {
@@ -224,6 +224,7 @@ func (c *cloud) Clusters() (cloudprovider.Clusters, bool) {
 }
 
 func (c *cloud) Routes() (cloudprovider.Routes, bool) {
+	/* TODO
 	if c.networkID > 0 && os.Getenv(hivelocityNetworkRoutesEnabledENVVar) != "false" {
 		r, err := newRoutes(c.client, c.networkID)
 		if err != nil {
@@ -232,6 +233,7 @@ func (c *cloud) Routes() (cloudprovider.Routes, bool) {
 		}
 		return r, true
 	}
+	*/
 	return nil, false // If no network is configured, disable the routes part
 }
 
@@ -247,6 +249,7 @@ func (c *cloud) HasClusterID() bool {
 	return false
 }
 
+/*
 func loadBalancerDefaultsFromEnv() (hcops.LoadBalancerDefaults, bool, bool, error) {
 	defaults := hcops.LoadBalancerDefaults{
 		Location:    os.Getenv(hivelocityLoadBalancersLocation),
@@ -275,10 +278,12 @@ func loadBalancerDefaultsFromEnv() (hcops.LoadBalancerDefaults, bool, bool, erro
 
 	return defaults, disablePrivateIngress, disableIPv6, nil
 }
+*/
 
 // serverIsAttachedToNetwork checks if the server where the master is running on is attached to the configured private network
 // We use this measurement to protect users against some parts of misconfiguration, like configuring a master in a not attached
 // network.
+/*
 func serverIsAttachedToNetwork(metadataClient *metadata.Client, networkID int) (bool, error) {
 	const op = "serverIsAttachedToNetwork"
 	metrics.OperationCalled.WithLabelValues(op).Inc()
@@ -289,6 +294,7 @@ func serverIsAttachedToNetwork(metadataClient *metadata.Client, networkID int) (
 	}
 	return strings.Contains(serverPrivateNetworks, fmt.Sprintf("network_id: %d\n", networkID)), nil
 }
+*/
 
 // addressFamilyFromEnv returns the address family for the instance address from the environment
 // variable. Returns AddressFamilyIPv4 if unset.

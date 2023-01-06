@@ -1,11 +1,7 @@
 package annotation
 
 import (
-	"fmt"
-
-	"github.com/hivelocity/hivelocity-cloud-controller-manager/internal/metrics"
 	"github.com/hivelocity/hivelocity-cloud-controller-manager/hvlb"
-	
 )
 
 const (
