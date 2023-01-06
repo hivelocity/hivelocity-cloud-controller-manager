@@ -71,15 +71,19 @@ const (
 	providerVersion                              = "v1.9.1"
 )
 
+// cloud implements cloudprovider.Interface for Hivelocity.
 type cloud struct {
 	client      *hv.APIClient
 	authContext *context.Context
 	instances   *instances
+	instancesV2 *hvInstancesV2
 	zones       *zones
 	//routes       *routes
 	//loadBalancer *loadBalancers
 	networkID int
 }
+
+var _ = cloudprovider.Interface(&cloud{})
 
 func newCloud(config io.Reader) (cloudprovider.Interface, error) {
 	const op = "hivelocity/newCloud"
@@ -91,10 +95,10 @@ func newCloud(config io.Reader) (cloudprovider.Interface, error) {
 	}
 
 	/*
-	nodeName := os.Getenv(nodeNameENVVar)
-	if nodeName == "" {
-		return nil, fmt.Errorf("environment variable %q is required", nodeNameENVVar)
-	}
+		nodeName := os.Getenv(nodeNameENVVar)
+		if nodeName == "" {
+			return nil, fmt.Errorf("environment variable %q is required", nodeNameENVVar)
+		}
 	*/
 
 	/*
@@ -185,7 +189,7 @@ func newCloud(config io.Reader) (cloudprovider.Interface, error) {
 		client:      client,
 		authContext: &authContext,
 		//zones:       newZones(client, nodeName),
-		instances:   newInstances(client, instancesAddressFamily),
+		instances: newInstances(client, instancesAddressFamily),
 		//	loadBalancer: loadBalancers,
 		//routes:    nil,
 		//networkID: networkID,
