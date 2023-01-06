@@ -31,7 +31,7 @@ type zones struct {
 	nodeName string // name of the node the programm is running on
 }
 
-func newZones(client *hv.Client, nodeName string) *zones {
+func newZones(client *hv.APIClient, nodeName string) *zones {
 	return &zones{client, nodeName}
 }
 

@@ -42,15 +42,17 @@ import (
 	"strings"
 
 	//"github.com/hivelocity/hivelocity-cloud-controller-manager/internal/hcops"
-	//"github.com/hivelocity/hivelocity-cloud-controller-manager/internal/metrics"
+	"cloud.google.com/go/compute/metadata"
 	hv "github.com/hivelocity/hivelocity-client-go/client"
+	"github.com/hivelocity/hivelocity-cloud-controller-manager/internal/metrics"
+
 	//"github.com/hivelocity/hivelocity-client-go/hivelocity/metadata"
 	cloudprovider "k8s.io/cloud-provider"
 	"k8s.io/klog/v2"
 )
 
 const (
-	hivelocityTokenENVVar    = "HIVELOCITY_TOKEN"
+	hivelocityApiKeyENVVar   = "HIVELOCITY_API_KEY"
 	hivelocityEndpointENVVar = "HIVELOCITY_ENDPOINT"
 	hivelocityNetworkENVVar  = "HIVELOCITY_NETWORK"
 	hivelocityDebugENVVar    = "HIVELOCITY_DEBUG"
@@ -66,57 +68,60 @@ const (
 	hivelocityLoadBalancersDisableIPv6           = "HIVELOCITY_LOAD_BALANCERS_DISABLE_IPV6"
 	hivelocityMetricsEnabledENVVar               = "HIVELOCITY_METRICS_ENABLED"
 	hivelocityMetricsAddress                     = ":8233"
-	nodeNameENVVar                           = "NODE_NAME"
-	providerName                             = "hivelocity"
-	providerVersion                          = "v1.9.1"
+	nodeNameENVVar                               = "NODE_NAME"
+	providerName                                 = "hivelocity"
+	providerVersion                              = "v1.9.1"
 )
 
 type cloud struct {
-	client       *hv.Client
-	instances    *instances
-	zones        *zones
-	routes       *routes
-	loadBalancer *loadBalancers
-	networkID    int
+	client    *hv.APIClient
+	authContext *context.Context
+	instances *instances
+	zones     *zones
+	//routes       *routes
+	//loadBalancer *loadBalancers
+	networkID int
 }
 
 func newCloud(config io.Reader) (cloudprovider.Interface, error) {
 	const op = "hivelocity/newCloud"
 	metrics.OperationCalled.WithLabelValues(op).Inc()
 
-	token := os.Getenv(hivelocityTokenENVVar)
-	if token == "" {
-		return nil, fmt.Errorf("environment variable %q is required", hivelocityTokenENVVar)
-	}
-	if len(token) != 64 {
-		return nil, fmt.Errorf("entered token is invalid (must be exactly 64 characters long)")
+	apiKey := os.Getenv(hivelocityApiKeyENVVar)
+	if apiKey == "" {
+		return nil, fmt.Errorf("environment variable %q is required", hivelocityApiKeyENVVar)
 	}
 	nodeName := os.Getenv(nodeNameENVVar)
 	if nodeName == "" {
 		return nil, fmt.Errorf("environment variable %q is required", nodeNameENVVar)
 	}
 
-	opts := []hivelocity.ClientOption{
-		hivelocity.WithToken(token),
-		hivelocity.WithApplication("hivelocity-cloud-controller", providerVersion),
-	}
-
+	/*
 	// start metrics server if enabled (enabled by default)
 	if os.Getenv(hivelocityMetricsEnabledENVVar) != "false" {
 		go metrics.Serve(hivelocityMetricsAddress)
 
-		opts = append(opts, hivelocity.WithInstrumentation(metrics.GetRegistry()))
+		opts = append(opts, hv.WithInstrumentation(metrics.GetRegistry()))
 	}
 
 	if os.Getenv(hivelocityDebugENVVar) == "true" {
-		opts = append(opts, hivelocity.WithDebugWriter(os.Stderr))
+		opts = append(opts, hv.WithDebugWriter(os.Stderr))
 	}
 	if endpoint := os.Getenv(hivelocityEndpointENVVar); endpoint != "" {
-		opts = append(opts, hivelocity.WithEndpoint(endpoint))
+		opts = append(opts, hv.WithEndpoint(endpoint))
 	}
-	client := hivelocity.NewClient(opts...)
-	metadataClient := metadata.NewClient()
+	*/
 
+	apiKey := os.Getenv("HIVELOCITY_API_KEY")
+	if apiKey == "" {
+		return nil, fmt.Errorf("Missing environment variable HIVELOCITY_API_KEY")
+	}
+	authContext := context.WithValue(context.Background(), hv.ContextAPIKey, hv.APIKey{
+		Key: apiKey,
+	})
+	client := hv.NewAPIClient(hv.NewConfiguration())
+
+	/*
 	var networkID int
 	if v, ok := os.LookupEnv(hivelocityNetworkENVVar); ok {
 		n, _, err := client.Network.Get(context.Background(), v)
@@ -146,7 +151,7 @@ func newCloud(config io.Reader) (cloudprovider.Interface, error) {
 		klog.Infof("%s: %s empty", op, hivelocityNetworkENVVar)
 	}
 
-	_, _, err := client.Server.List(context.Background(), hivelocity.ServerListOpts{})
+	_, _, err := client.Server.List(context.Background(), hv.ServerListOpts{})
 	if err != nil {
 		return nil, fmt.Errorf("%s: %w", op, err)
 	}
@@ -155,23 +160,24 @@ func newCloud(config io.Reader) (cloudprovider.Interface, error) {
 	if err != nil {
 		return nil, fmt.Errorf("%s: %w", op, err)
 	}
+	*/
 
 	klog.Infof("Hivelocity Cloud k8s cloud controller %s started\n", providerVersion)
 
 	/*
-	lbOps := &hcops.LoadBalancerOps{
-		LBClient:      &client.LoadBalancer,
-		CertOps:       &hcops.CertificateOps{CertClient: &client.Certificate},
-		ActionClient:  &client.Action,
-		NetworkClient: &client.Network,
-		NetworkID:     networkID,
-		Defaults:      lbOpsDefaults,
-	}
+		lbOps := &hcops.LoadBalancerOps{
+			LBClient:      &client.LoadBalancer,
+			CertOps:       &hcops.CertificateOps{CertClient: &client.Certificate},
+			ActionClient:  &client.Action,
+			NetworkClient: &client.Network,
+			NetworkID:     networkID,
+			Defaults:      lbOpsDefaults,
+		}
 
-	loadBalancers := newLoadBalancers(lbOps, &client.Action, lbDisablePrivateIngress, lbDisableIPv6)
-	if os.Getenv(hivelocityLoadBalancersEnabledENVVar) == "false" {
-		loadBalancers = nil
-	}
+		loadBalancers := newLoadBalancers(lbOps, &client.Action, lbDisablePrivateIngress, lbDisableIPv6)
+		if os.Getenv(hivelocityLoadBalancersEnabledENVVar) == "false" {
+			loadBalancers = nil
+		}
 	*/
 	instancesAddressFamily, err := addressFamilyFromEnv()
 	if err != nil {
@@ -179,12 +185,13 @@ func newCloud(config io.Reader) (cloudprovider.Interface, error) {
 	}
 
 	return &cloud{
-		client:       client,
-		zones:        newZones(client, nodeName),
-		instances:    newInstances(client, instancesAddressFamily),
-	//	loadBalancer: loadBalancers,
-		routes:       nil,
-		networkID:    networkID,
+		client:    client,
+		authContext: &authContext,
+		zones:     newZones(client, nodeName),
+		instances: newInstances(client, instancesAddressFamily),
+		//	loadBalancer: loadBalancers,
+		routes:    nil,
+		networkID: networkID,
 	}, nil
 }
 
