@@ -61,7 +61,7 @@ type cloud struct {
 	client      *hv.APIClient
 	authContext *context.Context
 	instances   *instances
-	instancesV2 *hvInstancesV2
+	instancesV2 *HVInstancesV2
 	zones       *zones
 	//routes       *routes
 	//loadBalancer *loadBalancers

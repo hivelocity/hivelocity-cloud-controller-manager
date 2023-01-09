@@ -27,9 +27,10 @@ import (
 
 	"github.com/joho/godotenv"
 	corev1 "k8s.io/api/core/v1"
+	"github.com/hivelocity/hivelocity-cloud-controller-manager/hivelocity"
 )
 
-func Test_getHivelocityDeviceIdFromNode(t *testing.T) {
+func Test_GetHivelocityDeviceIdFromNode(t *testing.T) {
 	type args struct {
 		node *corev1.Node
 	}
@@ -62,13 +63,13 @@ func Test_getHivelocityDeviceIdFromNode(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			got, err := getHivelocityDeviceIdFromNode(tt.args.node)
+			got, err := hivelocity.GetHivelocityDeviceIdFromNode(tt.args.node)
 			if (err != nil) != tt.wantErr {
-				t.Errorf("getHivelocityDeviceIdFromNode() error = %v, wantErr %v", err, tt.wantErr)
+				t.Errorf("GetHivelocityDeviceIdFromNode() error = %v, wantErr %v", err, tt.wantErr)
 				return
 			}
 			if got != tt.want {
-				t.Errorf("getHivelocityDeviceIdFromNode() = %v, want %v", got, tt.want)
+				t.Errorf("GetHivelocityDeviceIdFromNode() = %v, want %v", got, tt.want)
 			}
 		})
 	}
@@ -92,9 +93,9 @@ func getAPIClient() *hv.APIClient {
 var deviceID int = 14730
 
 func Test_InstanceExists(t *testing.T) {
-	var i2 hvInstancesV2
+	var i2 hivelocity.HVInstancesV2
 	client := getAPIClient()
-	i2.client = client
+	i2.Client = client
 	node := corev1.Node{
 		Spec: corev1.NodeSpec{
 			ProviderID: strconv.Itoa(deviceID),

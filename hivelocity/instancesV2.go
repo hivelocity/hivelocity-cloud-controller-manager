@@ -26,12 +26,12 @@ import (
 	v1 "k8s.io/api/core/v1"
 )
 
-// hvInstancesV2 implements cloudprovider.InstanceV2
-type hvInstancesV2 struct {
-	client *hv.APIClient
+// HVInstancesV2 implements cloudprovider.InstanceV2
+type HVInstancesV2 struct {
+	Client *hv.APIClient
 }
 
-func getHivelocityDeviceIdFromNode(node *v1.Node) (int32, error) {
+func GetHivelocityDeviceIdFromNode(node *v1.Node) (int32, error) {
 	deviceId, err := strconv.ParseInt(node.Spec.ProviderID, 10, 32)
 	if err != nil {
 		return 0, fmt.Errorf("failed to convert node.Spec.ProviderID %q to int32",
@@ -42,12 +42,12 @@ func getHivelocityDeviceIdFromNode(node *v1.Node) (int32, error) {
 
 // InstanceExists returns true if the instance for the given node exists according to the cloud provider.
 // Use the node.name or node.spec.providerID field to find the node in the cloud provider.
-func (i2 *hvInstancesV2) InstanceExists(ctx context.Context, node *v1.Node) (bool, error) {
-	deviceID, err := getHivelocityDeviceIdFromNode(node)
+func (i2 *HVInstancesV2) InstanceExists(ctx context.Context, node *v1.Node) (bool, error) {
+	deviceID, err := GetHivelocityDeviceIdFromNode(node)
 	if err != nil {
 		return false, err
 	}
-	_, response, err := i2.client.BareMetalDevicesApi.GetBareMetalDeviceIdResource(ctx, deviceID, nil)
+	_, response, err := i2.Client.BareMetalDevicesApi.GetBareMetalDeviceIdResource(ctx, deviceID, nil)
 	if err != nil {
 		err, ok := err.(hv.GenericSwaggerError)
 		if !ok {
@@ -56,7 +56,7 @@ func (i2 *hvInstancesV2) InstanceExists(ctx context.Context, node *v1.Node) (boo
 				response.StatusCode, node.Spec.ProviderID, err)
 		}
 		var result struct {
-			Code int
+			Code    int
 			Message string
 		}
 		if err2 := json.Unmarshal(err.Body(), &result); err2 != nil {
@@ -77,12 +77,12 @@ func (i2 *hvInstancesV2) InstanceExists(ctx context.Context, node *v1.Node) (boo
 
 // InstanceShutdown returns true if the instance is shutdown according to the cloud provider.
 // Use the node.name or node.spec.providerID field to find the node in the cloud provider.
-func (i2 *hvInstancesV2) InstanceShutdown(ctx context.Context, node *v1.Node) (bool, error) {
-	deviceID, err := getHivelocityDeviceIdFromNode(node)
+func (i2 *HVInstancesV2) InstanceShutdown(ctx context.Context, node *v1.Node) (bool, error) {
+	deviceID, err := GetHivelocityDeviceIdFromNode(node)
 	if err != nil {
 		return false, err
 	}
-	device, _, err := i2.client.BareMetalDevicesApi.GetBareMetalDeviceIdResource(ctx, deviceID, nil)
+	device, _, err := i2.Client.BareMetalDevicesApi.GetBareMetalDeviceIdResource(ctx, deviceID, nil)
 	if err != nil {
 		return false, err
 	}
