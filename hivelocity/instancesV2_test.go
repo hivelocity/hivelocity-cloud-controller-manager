@@ -23,7 +23,6 @@ import (
 	"testing"
 
 	hv "github.com/hivelocity/hivelocity-client-go/client"
-	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 
 	"github.com/joho/godotenv"
@@ -65,7 +64,6 @@ func Test_getHivelocityDeviceIdFromNode(t *testing.T) {
 		t.Run(tt.name, func(t *testing.T) {
 			got, err := getHivelocityDeviceIdFromNode(tt.args.node)
 			if (err != nil) != tt.wantErr {
-				// TODO: lieber assert
 				t.Errorf("getHivelocityDeviceIdFromNode() error = %v, wantErr %v", err, tt.wantErr)
 				return
 			}
@@ -105,16 +103,15 @@ func Test_InstanceExists(t *testing.T) {
 	}
 	myBool, err := i2.InstanceExists(ctx, &node)
 	require.NoError(t, err)
-	assert.Equal(t, nil, err) // TODO require --> abbruch.
-	assert.Equal(t, true, myBool)
+	require.Equal(t, true, myBool)
 
 	node.Spec.ProviderID = "9999999"
 	myBool, err = i2.InstanceExists(ctx, &node)
-	assert.Equal(t, false, myBool)
-	assert.Equal(t, nil, err)
+	require.Equal(t, false, myBool)
+	require.Equal(t, nil, err)
 
 	node.Spec.ProviderID = "9999999999999999999999999999"
 	myBool, err = i2.InstanceExists(ctx, &node)
-	assert.Equal(t, false, myBool)
-	assert.Equal(t, "failed to convert node.Spec.ProviderID \"9999999999999999999999999999\" to int32", err.Error())
+	require.Equal(t, false, myBool)
+	require.Equal(t, "failed to convert node.Spec.ProviderID \"9999999999999999999999999999\" to int32", err.Error())
 }
