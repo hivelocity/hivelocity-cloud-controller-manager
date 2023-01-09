@@ -33,6 +33,8 @@ func (i2 *hvInstancesV2) InstanceExists(ctx context.Context, node *v1.Node) (boo
 	}
 	_, response, err := i2.client.BareMetalDevicesApi.GetBareMetalDeviceIdResource(ctx, deviceID, nil)
 	if response.StatusCode == 404 {
+		// todo: ggf "schöner" err mit (no device)?
+		// methode schreiben, die diese err nachricht ausliest.
 		return false, nil
 	}
 	if err != nil {

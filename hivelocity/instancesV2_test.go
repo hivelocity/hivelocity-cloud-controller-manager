@@ -2,21 +2,21 @@ package hivelocity
 
 import (
 	"context"
-	"log"
 	"os"
 	"strconv"
 	"testing"
 
 	hv "github.com/hivelocity/hivelocity-client-go/client"
 	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
 
 	"github.com/joho/godotenv"
-	v1 "k8s.io/api/core/v1"
+	corev1 "k8s.io/api/core/v1"
 )
 
 func Test_getHivelocityDeviceIdFromNode(t *testing.T) {
 	type args struct {
-		node *v1.Node
+		node *corev1.Node
 	}
 	tests := []struct {
 		name    string
@@ -27,7 +27,7 @@ func Test_getHivelocityDeviceIdFromNode(t *testing.T) {
 		{
 			name: "empty deviceID should fail",
 			args: args{
-				node: &v1.Node{},
+				node: &corev1.Node{},
 			},
 			want:    0,
 			wantErr: true,
@@ -35,8 +35,8 @@ func Test_getHivelocityDeviceIdFromNode(t *testing.T) {
 		{
 			name: "Correct deviceID should get parsed",
 			args: args{
-				node: &v1.Node{
-					Spec: v1.NodeSpec{
+				node: &corev1.Node{
+					Spec: corev1.NodeSpec{
 						ProviderID: "12345",
 					},
 				},
@@ -49,6 +49,7 @@ func Test_getHivelocityDeviceIdFromNode(t *testing.T) {
 		t.Run(tt.name, func(t *testing.T) {
 			got, err := getHivelocityDeviceIdFromNode(tt.args.node)
 			if (err != nil) != tt.wantErr {
+				// TODO: lieber assert
 				t.Errorf("getHivelocityDeviceIdFromNode() error = %v, wantErr %v", err, tt.wantErr)
 				return
 			}
@@ -59,7 +60,7 @@ func Test_getHivelocityDeviceIdFromNode(t *testing.T) {
 	}
 }
 
-func getAPIClient() (hv.APIClient, context.Context) {
+func getAPIClient() (*hv.APIClient, context.Context) {
 	err := godotenv.Overload("../.envrc")
 	if err != nil {
 		panic(err)
@@ -67,13 +68,12 @@ func getAPIClient() (hv.APIClient, context.Context) {
 
 	apiKey := os.Getenv("HIVELOCITY_API_KEY")
 	if apiKey == "" {
-		log.Fatalln("Missing environment variable HIVELOCITY_API_KEY")
-		os.Exit(1)
+		panic("Missing environment variable HIVELOCITY_API_KEY")
 	}
 	ctx := context.WithValue(context.Background(), hv.ContextAPIKey, hv.APIKey{
 		Key: apiKey,
 	})
-	return *hv.NewAPIClient(hv.NewConfiguration()), ctx
+	return hv.NewAPIClient(hv.NewConfiguration()), ctx
 }
 
 var deviceID int = 14730
@@ -81,14 +81,15 @@ var deviceID int = 14730
 func Test_InstanceExists(t *testing.T) {
 	var i2 hvInstancesV2
 	client, ctx := getAPIClient()
-	i2.client = &client
-	node := v1.Node{
-		Spec: v1.NodeSpec{
+	i2.client = client
+	node := corev1.Node{
+		Spec: corev1.NodeSpec{
 			ProviderID: strconv.Itoa(deviceID),
 		},
 	}
 	myBool, err := i2.InstanceExists(ctx, &node)
-	assert.Equal(t, nil, err)
+	require.NoError(t, err)
+	assert.Equal(t, nil, err) // TODO require --> abbruch.
 	assert.Equal(t, true, myBool)
 
 	node.Spec.ProviderID = "9999999"
