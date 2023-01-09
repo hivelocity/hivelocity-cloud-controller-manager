@@ -49,6 +49,7 @@ var deviceID int = 14730
 
 func Test_InstanceExists(t *testing.T) {
 	var i2 hivelocity.HVInstancesV2
+	i2.Remote = &hivelocity.RealRemoteAPI{}
 	client := getAPIClient()
 	i2.Client = client
 	node := corev1.Node{
@@ -64,7 +65,7 @@ func Test_InstanceExists(t *testing.T) {
 	node.Spec.ProviderID = "9999999"
 	myBool, err = i2.InstanceExists(ctx, &node)
 	require.Equal(t, false, myBool)
-	require.Equal(t, nil, err)
+	require.NoError(t, err)
 
 	node.Spec.ProviderID = "9999999999999999999999999999"
 	myBool, err = i2.InstanceExists(ctx, &node)

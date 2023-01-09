@@ -19,6 +19,7 @@ package hivelocity
 import (
 	"context"
 	"encoding/json"
+	"errors"
 	"fmt"
 	"strconv"
 
@@ -26,9 +27,51 @@ import (
 	v1 "k8s.io/api/core/v1"
 )
 
+var NoSuchDeviceError = errors.New("No such device")
+
+type RemoteAPI interface{
+	GetBareMetalDeviceIdResource (client *hv.APIClient, deviceId int32) (*hv.BareMetalDevice, error)
+}
+
+
+type RealRemoteAPI struct {}
+
+var _ RemoteAPI = (*RealRemoteAPI)(nil)
+
+func (remote *RealRemoteAPI) GetBareMetalDeviceIdResource (client *hv.APIClient, deviceId int32) (*hv.BareMetalDevice, error){
+	device, response, err := client.BareMetalDevicesApi.GetBareMetalDeviceIdResource(
+		context.Background(), deviceId, nil)
+	if err != nil {
+		err, ok := err.(hv.GenericSwaggerError)
+		if !ok {
+			return nil, fmt.Errorf(
+				"unknown error during GetBareMetalDeviceIdResource StatusCode %d deviceId %q. %w",
+				response.StatusCode, deviceId, err)
+		}
+		var result struct {
+			Code    int
+			Message string
+		}
+		if err2 := json.Unmarshal(err.Body(), &result); err2 != nil {
+			return nil, fmt.Errorf(
+				"GetBareMetalDeviceIdResource failed to parse response body %s. StatusCode %d deviceId %q. %w",
+				err.Body(),
+				response.StatusCode, deviceId, err2)
+		}
+
+		if result.Message == "Device not found" {
+			return nil, NoSuchDeviceError
+		}
+		return nil, fmt.Errorf("GetBareMetalDeviceIdResource failed with %d. deviceId %q. %w",
+			response.StatusCode, deviceId, err)
+	}
+	return &device, nil
+}
+
 // HVInstancesV2 implements cloudprovider.InstanceV2
 type HVInstancesV2 struct {
 	Client *hv.APIClient
+	Remote RemoteAPI
 }
 
 func GetHivelocityDeviceIdFromNode(node *v1.Node) (int32, error) {
@@ -47,30 +90,12 @@ func (i2 *HVInstancesV2) InstanceExists(ctx context.Context, node *v1.Node) (boo
 	if err != nil {
 		return false, err
 	}
-	_, response, err := i2.Client.BareMetalDevicesApi.GetBareMetalDeviceIdResource(ctx, deviceID, nil)
+	_, err = i2.Remote.GetBareMetalDeviceIdResource(i2.Client, deviceID)
+	if err == NoSuchDeviceError {
+		return false, nil
+	}
 	if err != nil {
-		err, ok := err.(hv.GenericSwaggerError)
-		if !ok {
-			return false, fmt.Errorf(
-				"unknown error during GetBareMetalDeviceIdResource StatusCode %d node.Spec.ProviderID %q. %w",
-				response.StatusCode, node.Spec.ProviderID, err)
-		}
-		var result struct {
-			Code    int
-			Message string
-		}
-		if err2 := json.Unmarshal(err.Body(), &result); err2 != nil {
-			return false, fmt.Errorf(
-				"GetBareMetalDeviceIdResource failed to parse response body %s. StatusCode %d node.Spec.ProviderID %q. %w",
-				err.Body(),
-				response.StatusCode, node.Spec.ProviderID, err2)
-		}
-
-		if result.Message == "Device not found" {
-			return false, nil
-		}
-		return false, fmt.Errorf("GetBareMetalDeviceIdResource failed with %d. node.Spec.ProviderID %q. %w",
-			response.StatusCode, node.Spec.ProviderID, err)
+		return false, err
 	}
 	return true, nil
 }
