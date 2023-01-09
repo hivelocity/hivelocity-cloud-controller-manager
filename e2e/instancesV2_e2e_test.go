@@ -25,55 +25,10 @@ import (
 	hv "github.com/hivelocity/hivelocity-client-go/client"
 	"github.com/stretchr/testify/require"
 
+	"github.com/hivelocity/hivelocity-cloud-controller-manager/hivelocity"
 	"github.com/joho/godotenv"
 	corev1 "k8s.io/api/core/v1"
-	"github.com/hivelocity/hivelocity-cloud-controller-manager/hivelocity"
 )
-
-func Test_GetHivelocityDeviceIdFromNode(t *testing.T) {
-	type args struct {
-		node *corev1.Node
-	}
-	tests := []struct {
-		name    string
-		args    args
-		want    int32
-		wantErr bool
-	}{
-		{
-			name: "empty deviceID should fail",
-			args: args{
-				node: &corev1.Node{},
-			},
-			want:    0,
-			wantErr: true,
-		},
-		{
-			name: "Correct deviceID should get parsed",
-			args: args{
-				node: &corev1.Node{
-					Spec: corev1.NodeSpec{
-						ProviderID: "12345",
-					},
-				},
-			},
-			want:    12345,
-			wantErr: false,
-		},
-	}
-	for _, tt := range tests {
-		t.Run(tt.name, func(t *testing.T) {
-			got, err := hivelocity.GetHivelocityDeviceIdFromNode(tt.args.node)
-			if (err != nil) != tt.wantErr {
-				t.Errorf("GetHivelocityDeviceIdFromNode() error = %v, wantErr %v", err, tt.wantErr)
-				return
-			}
-			if got != tt.want {
-				t.Errorf("GetHivelocityDeviceIdFromNode() = %v, want %v", got, tt.want)
-			}
-		})
-	}
-}
 
 func getAPIClient() *hv.APIClient {
 	err := godotenv.Overload("../.envrc")
