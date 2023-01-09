@@ -48,24 +48,29 @@ func (i2 *hvInstancesV2) InstanceExists(ctx context.Context, node *v1.Node) (boo
 		return false, err
 	}
 	_, response, err := i2.client.BareMetalDevicesApi.GetBareMetalDeviceIdResource(ctx, deviceID, nil)
-	if response.StatusCode == 404 {
-		var result map[string]string
+	if err != nil {
 		err, ok := err.(hv.GenericSwaggerError)
 		if !ok {
 			return false, fmt.Errorf(
 				"unknown error during GetBareMetalDeviceIdResource StatusCode %d node.Spec.ProviderID %q. %w",
 				response.StatusCode, node.Spec.ProviderID, err)
 		}
-		json.Unmarshal(err.Body(), &result)
-		if result["message"] == "Device not found" {
+		var result struct {
+			Code int
+			Message string
+		}
+		if err2 := json.Unmarshal(err.Body(), &result); err2 != nil {
+			return false, fmt.Errorf(
+				"GetBareMetalDeviceIdResource failed to parse response body %s. StatusCode %d node.Spec.ProviderID %q. %w",
+				err.Body(),
+				response.StatusCode, node.Spec.ProviderID, err2)
+		}
+
+		if result.Message == "Device not found" {
 			return false, nil
 		}
 		return false, fmt.Errorf("GetBareMetalDeviceIdResource failed with %d. node.Spec.ProviderID %q. %w",
 			response.StatusCode, node.Spec.ProviderID, err)
-	}
-	if err != nil {
-		return false, fmt.Errorf("GetBareMetalDeviceIdResource failed node.Spec.ProviderID %q. %w",
-			node.Spec.ProviderID, err)
 	}
 	return true, nil
 }

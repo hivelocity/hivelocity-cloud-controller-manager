@@ -74,7 +74,7 @@ func Test_getHivelocityDeviceIdFromNode(t *testing.T) {
 	}
 }
 
-func getAPIClient() (*hv.APIClient, context.Context) {
+func getAPIClient() *hv.APIClient {
 	err := godotenv.Overload("../.envrc")
 	if err != nil {
 		panic(err)
@@ -84,23 +84,23 @@ func getAPIClient() (*hv.APIClient, context.Context) {
 	if apiKey == "" {
 		panic("Missing environment variable HIVELOCITY_API_KEY")
 	}
-	ctx := context.WithValue(context.Background(), hv.ContextAPIKey, hv.APIKey{
-		Key: apiKey,
-	})
-	return hv.NewAPIClient(hv.NewConfiguration()), ctx
+	config := hv.NewConfiguration()
+	config.AddDefaultHeader("X-API-KEY", apiKey)
+	return hv.NewAPIClient(config)
 }
 
 var deviceID int = 14730
 
 func Test_InstanceExists(t *testing.T) {
 	var i2 hvInstancesV2
-	client, ctx := getAPIClient()
+	client := getAPIClient()
 	i2.client = client
 	node := corev1.Node{
 		Spec: corev1.NodeSpec{
 			ProviderID: strconv.Itoa(deviceID),
 		},
 	}
+	ctx := context.Background()
 	myBool, err := i2.InstanceExists(ctx, &node)
 	require.NoError(t, err)
 	require.Equal(t, true, myBool)
