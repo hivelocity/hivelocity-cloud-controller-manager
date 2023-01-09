@@ -116,5 +116,5 @@ func Test_InstanceExists(t *testing.T) {
 	node.Spec.ProviderID = "9999999999999999999999999999"
 	myBool, err = i2.InstanceExists(ctx, &node)
 	assert.Equal(t, false, myBool)
-	assert.Equal(t, "failed to convert node.Spec.ProviderID \"9999999999999999999999999999\" to int32.", err.Error())
+	assert.Equal(t, "failed to convert node.Spec.ProviderID \"9999999999999999999999999999\" to int32", err.Error())
 }

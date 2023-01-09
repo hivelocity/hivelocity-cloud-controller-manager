@@ -18,6 +18,7 @@ package hivelocity
 
 import (
 	"context"
+	"encoding/json"
 	"fmt"
 	"strconv"
 
@@ -27,14 +28,13 @@ import (
 
 // hvInstancesV2 implements cloudprovider.InstanceV2
 type hvInstancesV2 struct {
-	client        *hv.APIClient
-	addressFamily addressFamily
+	client *hv.APIClient
 }
 
-func getHivelocityDeviceIdFromNode(node *v1.Node) (int32, error){
+func getHivelocityDeviceIdFromNode(node *v1.Node) (int32, error) {
 	deviceId, err := strconv.ParseInt(node.Spec.ProviderID, 10, 32)
 	if err != nil {
-		return 0, fmt.Errorf("failed to convert node.Spec.ProviderID %q to int32.",
+		return 0, fmt.Errorf("failed to convert node.Spec.ProviderID %q to int32",
 			node.Spec.ProviderID)
 	}
 	return int32(deviceId), nil
@@ -49,9 +49,19 @@ func (i2 *hvInstancesV2) InstanceExists(ctx context.Context, node *v1.Node) (boo
 	}
 	_, response, err := i2.client.BareMetalDevicesApi.GetBareMetalDeviceIdResource(ctx, deviceID, nil)
 	if response.StatusCode == 404 {
-		// todo: ggf "schöner" err mit (no device)?
-		// methode schreiben, die diese err nachricht ausliest.
-		return false, nil
+		var result map[string]string
+		err, ok := err.(hv.GenericSwaggerError)
+		if !ok {
+			return false, fmt.Errorf(
+				"unknown error during GetBareMetalDeviceIdResource StatusCode %d node.Spec.ProviderID %q. %w",
+				response.StatusCode, node.Spec.ProviderID, err)
+		}
+		json.Unmarshal(err.Body(), &result)
+		if result["message"] == "Device not found" {
+			return false, nil
+		}
+		return false, fmt.Errorf("GetBareMetalDeviceIdResource failed with %d. node.Spec.ProviderID %q. %w",
+			response.StatusCode, node.Spec.ProviderID, err)
 	}
 	if err != nil {
 		return false, fmt.Errorf("GetBareMetalDeviceIdResource failed node.Spec.ProviderID %q. %w",
@@ -62,7 +72,7 @@ func (i2 *hvInstancesV2) InstanceExists(ctx context.Context, node *v1.Node) (boo
 
 // InstanceShutdown returns true if the instance is shutdown according to the cloud provider.
 // Use the node.name or node.spec.providerID field to find the node in the cloud provider.
-func (i2 *hvInstancesV2) InstanceShutdown(ctx context.Context, node *v1.Node) (bool, error){
+func (i2 *hvInstancesV2) InstanceShutdown(ctx context.Context, node *v1.Node) (bool, error) {
 	deviceID, err := getHivelocityDeviceIdFromNode(node)
 	if err != nil {
 		return false, err
@@ -72,9 +82,11 @@ func (i2 *hvInstancesV2) InstanceShutdown(ctx context.Context, node *v1.Node) (b
 		return false, err
 	}
 	switch device.PowerStatus {
-	case "ON": return false, nil
-	case "OFF": return true, nil
-	default: return false, fmt.Errorf("Device with ID %q has unknown PowerStatus %q.", deviceID, device.PowerStatus)
+	case "ON":
+		return false, nil
+	case "OFF":
+		return true, nil
+	default:
+		return false, fmt.Errorf("device with ID %q has unknown PowerStatus %q", deviceID, device.PowerStatus)
 	}
 }
-

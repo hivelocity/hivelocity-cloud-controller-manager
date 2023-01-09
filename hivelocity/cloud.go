@@ -34,7 +34,7 @@ import (
 )
 
 const (
-	// TODO remove not used 
+	// TODO remove not used
 	hivelocityApiKeyENVVar   = "HIVELOCITY_API_KEY"
 	hivelocityEndpointENVVar = "HIVELOCITY_ENDPOINT"
 	hivelocityNetworkENVVar  = "HIVELOCITY_NETWORK"
@@ -189,8 +189,7 @@ func (c *cloud) Instances() (cloudprovider.Instances, bool) {
 }
 
 func (c *cloud) InstancesV2() (cloudprovider.InstancesV2, bool) {
-	// TODO disable InstancesV2 for now. We first need to implement it and
-	// find out what to do about the Deprecation of Zones
+	// TODO enable InstancesV2 and disable old way.
 	return nil, false
 }
 
