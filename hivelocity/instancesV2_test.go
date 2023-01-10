@@ -24,6 +24,7 @@ import (
 
 	"github.com/hexops/autogold"
 	hv "github.com/hivelocity/hivelocity-client-go/client"
+	"github.com/hivelocity/hivelocity-cloud-controller-manager/client"
 	"github.com/hivelocity/hivelocity-cloud-controller-manager/mocks"
 	"github.com/stretchr/testify/require"
 
@@ -134,7 +135,7 @@ func standardMocks(m *mocks.API) {
 		nil)
 
 	m.On("GetBareMetalDeviceIdResource", int32(9999999)).Return(
-		nil, ErrNoSuchDevice)
+		nil, client.ErrNoSuchDevice)
 }
 func Test_InstanceExists(t *testing.T) {
 	i2, m := newHVInstanceV2(t)

@@ -18,8 +18,6 @@ package hivelocity
 
 import (
 	"context"
-	"encoding/json"
-	"errors"
 	"fmt"
 	"strconv"
 
@@ -29,43 +27,6 @@ import (
 	cloudprovider "k8s.io/cloud-provider"
 )
 
-var ErrNoSuchDevice = errors.New("no such device")
-
-type RealAPI struct {
-	Client *hv.APIClient
-}
-
-var _ client.API = (*RealAPI)(nil)
-
-func (api *RealAPI) GetBareMetalDeviceIdResource(deviceId int32) (*hv.BareMetalDevice, error) {
-	device, response, err := api.Client.BareMetalDevicesApi.GetBareMetalDeviceIdResource(
-		context.Background(), deviceId, nil)
-	if err != nil {
-		err, ok := err.(hv.GenericSwaggerError)
-		if !ok {
-			return nil, fmt.Errorf(
-				"unknown error during GetBareMetalDeviceIdResource StatusCode %d deviceId %q. %w",
-				response.StatusCode, deviceId, err)
-		}
-		var result struct {
-			Code    int
-			Message string
-		}
-		if err2 := json.Unmarshal(err.Body(), &result); err2 != nil {
-			return nil, fmt.Errorf(
-				"GetBareMetalDeviceIdResource failed to parse response body %s. StatusCode %d deviceId %q. %w",
-				err.Body(),
-				response.StatusCode, deviceId, err2)
-		}
-
-		if result.Message == "Device not found" {
-			return nil, ErrNoSuchDevice
-		}
-		return nil, fmt.Errorf("GetBareMetalDeviceIdResource failed with %d. deviceId %q. %w",
-			response.StatusCode, deviceId, err)
-	}
-	return &device, nil
-}
 
 // HVInstancesV2 implements cloudprovider.InstanceV2
 type HVInstancesV2 struct {
@@ -92,7 +53,7 @@ func (i2 *HVInstancesV2) InstanceExists(ctx context.Context, node *corev1.Node) 
 		return false, err
 	}
 	_, err = i2.API.GetBareMetalDeviceIdResource(deviceId)
-	if err == ErrNoSuchDevice {
+	if err == client.ErrNoSuchDevice {
 		return false, nil
 	}
 	if err != nil {

@@ -26,6 +26,7 @@ import (
 	"github.com/stretchr/testify/require"
 
 	"github.com/hexops/autogold"
+	"github.com/hivelocity/hivelocity-cloud-controller-manager/client"
 	"github.com/hivelocity/hivelocity-cloud-controller-manager/hivelocity"
 	"github.com/joho/godotenv"
 	corev1 "k8s.io/api/core/v1"
@@ -51,11 +52,11 @@ var e2eDeviceId int = 14730
 
 func newHVInstanceV2() *hivelocity.HVInstancesV2 {
 	var i2 hivelocity.HVInstancesV2
-	client := getAPIClient()
-	i2.API = &hivelocity.RealAPI{
-		Client: client,
+	apiClient := getAPIClient()
+	i2.API = &client.RealAPI{
+		Client: apiClient,
 	}
-	i2.Client = client
+	i2.Client = apiClient
 	return &i2
 }
 
