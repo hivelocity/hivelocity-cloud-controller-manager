@@ -97,10 +97,10 @@ var mockDeviceId int = 14730
 func newHVInstanceV2(t *testing.T) (*HVInstancesV2, *mocks.API) {
 	var i2 HVInstancesV2
 	client := getAPIClient()
-	m := mocks.NewAPI(t)
-	i2.Remote = m
+	api := mocks.NewAPI(t)
+	i2.API = api
 	i2.Client = client
-	return &i2, m
+	return &i2, api
 }
 
 func newNode() *corev1.Node {

@@ -24,24 +24,21 @@ import (
 	"strconv"
 
 	hv "github.com/hivelocity/hivelocity-client-go/client"
+	"github.com/hivelocity/hivelocity-cloud-controller-manager/client"
 	corev1 "k8s.io/api/core/v1"
 	cloudprovider "k8s.io/cloud-provider"
 )
 
 var ErrNoSuchDevice = errors.New("no such device")
 
-type API interface {
-	GetBareMetalDeviceIdResource(deviceId int32) (*hv.BareMetalDevice, error)
-}
-
 type RealAPI struct {
 	Client *hv.APIClient
 }
 
-var _ API = (*RealAPI)(nil)
+var _ client.API = (*RealAPI)(nil)
 
-func (remote *RealAPI) GetBareMetalDeviceIdResource(deviceId int32) (*hv.BareMetalDevice, error) {
-	device, response, err := remote.Client.BareMetalDevicesApi.GetBareMetalDeviceIdResource(
+func (api *RealAPI) GetBareMetalDeviceIdResource(deviceId int32) (*hv.BareMetalDevice, error) {
+	device, response, err := api.Client.BareMetalDevicesApi.GetBareMetalDeviceIdResource(
 		context.Background(), deviceId, nil)
 	if err != nil {
 		err, ok := err.(hv.GenericSwaggerError)
@@ -73,7 +70,7 @@ func (remote *RealAPI) GetBareMetalDeviceIdResource(deviceId int32) (*hv.BareMet
 // HVInstancesV2 implements cloudprovider.InstanceV2
 type HVInstancesV2 struct {
 	Client *hv.APIClient
-	Remote API
+	API    client.API
 }
 
 var _ cloudprovider.InstancesV2 = &HVInstancesV2{}
@@ -94,7 +91,7 @@ func (i2 *HVInstancesV2) InstanceExists(ctx context.Context, node *corev1.Node) 
 	if err != nil {
 		return false, err
 	}
-	_, err = i2.Remote.GetBareMetalDeviceIdResource(deviceId)
+	_, err = i2.API.GetBareMetalDeviceIdResource(deviceId)
 	if err == ErrNoSuchDevice {
 		return false, nil
 	}
@@ -130,7 +127,7 @@ func (i2 *HVInstancesV2) InstanceMetadata(ctx context.Context, node *corev1.Node
 	if err != nil {
 		return nil, err
 	}
-	device, err := i2.Remote.GetBareMetalDeviceIdResource(deviceId)
+	device, err := i2.API.GetBareMetalDeviceIdResource(deviceId)
 	if err != nil {
 		return nil, err
 	}
