@@ -49,8 +49,10 @@ var deviceID int = 14730
 
 func Test_InstanceExists(t *testing.T) {
 	var i2 hivelocity.HVInstancesV2
-	i2.Remote = &hivelocity.RealRemoteAPI{}
 	client := getAPIClient()
+	i2.Remote = &hivelocity.RealRemoteAPI{
+		Client: client,
+	}
 	i2.Client = client
 	node := corev1.Node{
 		Spec: corev1.NodeSpec{

@@ -23,6 +23,7 @@ import (
 	"testing"
 
 	hv "github.com/hivelocity/hivelocity-client-go/client"
+	"github.com/hivelocity/hivelocity-cloud-controller-manager/mocks"
 	"github.com/stretchr/testify/require"
 
 	"github.com/joho/godotenv"
@@ -91,16 +92,41 @@ func getAPIClient() *hv.APIClient {
 
 var deviceID int = 14730
 
+
 func Test_InstanceExists(t *testing.T) {
 	var i2 HVInstancesV2
 	client := getAPIClient()
 	i2.Client = client
+	m := mocks.NewRemoteAPI(t)
+	i2.Remote = m
 	node := corev1.Node{
 		Spec: corev1.NodeSpec{
 			ProviderID: strconv.Itoa(deviceID),
 		},
 	}
 	ctx := context.Background()
+	m.On("GetBareMetalDeviceIdResource", int32(14730)).Return(
+		&hv.BareMetalDevice{
+			Hostname: "",
+			PrimaryIp: "66.165.243.74",
+			CustomIPXEScriptURL: "",
+			LocationName: "LAX2",
+			ServiceId: 0,
+			DeviceId: 14730,
+			ProductName: "",
+			VlanId: 0,
+			Period: "",
+			PublicSshKeyId: 0,
+			Script: "",
+			PowerStatus: "ON",
+			CustomIPXEScriptContents: "",
+			OrderId: 0,
+			OsName: "",
+			ProductId: 0,
+		   },
+		   nil)
+	m.On("GetBareMetalDeviceIdResource", int32(9999999)).Return(
+		nil, NoSuchDeviceError)
 	myBool, err := i2.InstanceExists(ctx, &node)
 	require.NoError(t, err)
 	require.Equal(t, true, myBool)
@@ -108,7 +134,7 @@ func Test_InstanceExists(t *testing.T) {
 	node.Spec.ProviderID = "9999999"
 	myBool, err = i2.InstanceExists(ctx, &node)
 	require.Equal(t, false, myBool)
-	require.Equal(t, nil, err)
+	require.NoError(t, err)
 
 	node.Spec.ProviderID = "9999999999999999999999999999"
 	myBool, err = i2.InstanceExists(ctx, &node)

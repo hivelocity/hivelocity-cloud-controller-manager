@@ -13,6 +13,8 @@ require (
 	k8s.io/klog/v2 v2.80.1
 )
 
+require github.com/stretchr/objx v0.4.0 // indirect
+
 require (
 	cloud.google.com/go/compute/metadata v0.2.3 // indirect
 	github.com/Azure/go-ansiterm v0.0.0-20210617225240-d185dfc1b5a1 // indirect

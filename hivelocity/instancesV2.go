@@ -29,17 +29,19 @@ import (
 
 var NoSuchDeviceError = errors.New("No such device")
 
-type RemoteAPI interface{
-	GetBareMetalDeviceIdResource (client *hv.APIClient, deviceId int32) (*hv.BareMetalDevice, error)
+type RemoteAPI interface {
+	GetBareMetalDeviceIdResource(deviceId int32) (*hv.BareMetalDevice, error)
 }
 
-
-type RealRemoteAPI struct {}
+type RealRemoteAPI struct {
+	Client *hv.APIClient
+}
 
 var _ RemoteAPI = (*RealRemoteAPI)(nil)
 
-func (remote *RealRemoteAPI) GetBareMetalDeviceIdResource (client *hv.APIClient, deviceId int32) (*hv.BareMetalDevice, error){
-	device, response, err := client.BareMetalDevicesApi.GetBareMetalDeviceIdResource(
+
+func (remote *RealRemoteAPI) GetBareMetalDeviceIdResource(deviceId int32) (*hv.BareMetalDevice, error) {
+	device, response, err := remote.Client.BareMetalDevicesApi.GetBareMetalDeviceIdResource(
 		context.Background(), deviceId, nil)
 	if err != nil {
 		err, ok := err.(hv.GenericSwaggerError)
@@ -90,7 +92,7 @@ func (i2 *HVInstancesV2) InstanceExists(ctx context.Context, node *v1.Node) (boo
 	if err != nil {
 		return false, err
 	}
-	_, err = i2.Remote.GetBareMetalDeviceIdResource(i2.Client, deviceID)
+	_, err = i2.Remote.GetBareMetalDeviceIdResource(deviceID)
 	if err == NoSuchDeviceError {
 		return false, nil
 	}
