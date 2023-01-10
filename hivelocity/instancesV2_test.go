@@ -94,10 +94,10 @@ func getAPIClient() *hv.APIClient {
 
 var mockDeviceId int = 14730
 
-func newHVInstanceV2(t *testing.T) (*HVInstancesV2, *mocks.RemoteAPI) {
+func newHVInstanceV2(t *testing.T) (*HVInstancesV2, *mocks.API) {
 	var i2 HVInstancesV2
 	client := getAPIClient()
-	m := mocks.NewRemoteAPI(t)
+	m := mocks.NewAPI(t)
 	i2.Remote = m
 	i2.Client = client
 	return &i2, m
@@ -111,7 +111,7 @@ func newNode() *corev1.Node {
 	}
 }
 
-func standardMocks(m *mocks.RemoteAPI) {
+func standardMocks(m *mocks.API) {
 	m.On("GetBareMetalDeviceIdResource", int32(14730)).Return(
 		&hv.BareMetalDevice{
 			Hostname:                 "",

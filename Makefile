@@ -174,7 +174,7 @@ vet: ## Run go vet against code.
 
 .PHONY: generate-mocks
 generate-mocks:
-	mockery -r --name=RemoteAPI
+	mockery -r --name=API
 
 .PHONY: testall
 testall:

@@ -52,7 +52,7 @@ var e2eDeviceId int = 14730
 func newHVInstanceV2() *hivelocity.HVInstancesV2 {
 	var i2 hivelocity.HVInstancesV2
 	client := getAPIClient()
-	i2.Remote = &hivelocity.RealRemoteAPI{
+	i2.Remote = &hivelocity.RealAPI{
 		Client: client,
 	}
 	i2.Client = client

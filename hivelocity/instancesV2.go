@@ -30,17 +30,17 @@ import (
 
 var ErrNoSuchDevice = errors.New("no such device")
 
-type RemoteAPI interface {
+type API interface {
 	GetBareMetalDeviceIdResource(deviceId int32) (*hv.BareMetalDevice, error)
 }
 
-type RealRemoteAPI struct {
+type RealAPI struct {
 	Client *hv.APIClient
 }
 
-var _ RemoteAPI = (*RealRemoteAPI)(nil)
+var _ API = (*RealAPI)(nil)
 
-func (remote *RealRemoteAPI) GetBareMetalDeviceIdResource(deviceId int32) (*hv.BareMetalDevice, error) {
+func (remote *RealAPI) GetBareMetalDeviceIdResource(deviceId int32) (*hv.BareMetalDevice, error) {
 	device, response, err := remote.Client.BareMetalDevicesApi.GetBareMetalDeviceIdResource(
 		context.Background(), deviceId, nil)
 	if err != nil {
@@ -73,8 +73,10 @@ func (remote *RealRemoteAPI) GetBareMetalDeviceIdResource(deviceId int32) (*hv.B
 // HVInstancesV2 implements cloudprovider.InstanceV2
 type HVInstancesV2 struct {
 	Client *hv.APIClient
-	Remote RemoteAPI
+	Remote API
 }
+
+var _ cloudprovider.InstancesV2 = &HVInstancesV2{}
 
 func GetHivelocityDeviceIdFromNode(node *corev1.Node) (int32, error) {
 	deviceId, err := strconv.ParseInt(node.Spec.ProviderID, 10, 32)
