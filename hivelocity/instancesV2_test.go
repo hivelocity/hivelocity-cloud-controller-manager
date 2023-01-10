@@ -22,12 +22,14 @@ import (
 	"strconv"
 	"testing"
 
+	"github.com/hexops/autogold"
 	hv "github.com/hivelocity/hivelocity-client-go/client"
 	"github.com/hivelocity/hivelocity-cloud-controller-manager/mocks"
 	"github.com/stretchr/testify/require"
 
 	"github.com/joho/godotenv"
 	corev1 "k8s.io/api/core/v1"
+	cloudprovider "k8s.io/cloud-provider"
 )
 
 func Test_GetHivelocityDeviceIdFromNode(t *testing.T) {
@@ -92,7 +94,7 @@ func getAPIClient() *hv.APIClient {
 
 var mockDeviceId int = 14730
 
-func newHVInstanceV2(t *testing.T) (*HVInstancesV2, *mocks.RemoteAPI){
+func newHVInstanceV2(t *testing.T) (*HVInstancesV2, *mocks.RemoteAPI) {
 	var i2 HVInstancesV2
 	client := getAPIClient()
 	m := mocks.NewRemoteAPI(t)
@@ -109,10 +111,7 @@ func newNode() *corev1.Node {
 	}
 }
 
-func Test_InstanceExists(t *testing.T) {
-	i2, m := newHVInstanceV2(t)
-	node := newNode()
-	ctx := context.Background()
+func standardMocks(m *mocks.RemoteAPI) {
 	m.On("GetBareMetalDeviceIdResource", int32(14730)).Return(
 		&hv.BareMetalDevice{
 			Hostname:                 "",
@@ -136,6 +135,12 @@ func Test_InstanceExists(t *testing.T) {
 
 	m.On("GetBareMetalDeviceIdResource", int32(9999999)).Return(
 		nil, ErrNoSuchDevice)
+}
+func Test_InstanceExists(t *testing.T) {
+	i2, m := newHVInstanceV2(t)
+	node := newNode()
+	ctx := context.Background()
+	standardMocks(m)
 	myBool, err := i2.InstanceExists(ctx, node)
 	require.NoError(t, err)
 	require.Equal(t, true, myBool)
@@ -151,10 +156,7 @@ func Test_InstanceExists(t *testing.T) {
 	require.Equal(t, "failed to convert node.Spec.ProviderID \"9999999999999999999999999999\" to int32", err.Error())
 }
 
-
-
-
-func Test_InstanceShutdown(t *testing.T){
+func Test_InstanceShutdown(t *testing.T) {
 	i2, _ := newHVInstanceV2(t)
 	node := newNode()
 	ctx := context.Background()
@@ -167,4 +169,26 @@ func Test_InstanceShutdown(t *testing.T){
 	require.Error(t, err)
 }
 
+func Test_InstanceMetadata(t *testing.T) {
+	i2, m := newHVInstanceV2(t)
+	node := newNode()
+	ctx := context.Background()
+	standardMocks(m)
+	metaData, err := i2.InstanceMetadata(ctx, node)
+	require.NoError(t, err)
+	autogold.Want("metaData", &cloudprovider.InstanceMetadata{
+		ProviderID: "14730",
+		NodeAddresses: []corev1.NodeAddress{
+			{
+				Type:    corev1.NodeAddressType("ExternalIP"),
+				Address: "66.165.243.74",
+			},
+		},
+		Zone: "LAX2",
+	}).Equal(t, metaData)
 
+	node.Spec.ProviderID = "9999999"
+	metaData, err = i2.InstanceMetadata(ctx, node)
+	require.Error(t, err)
+	require.Nil(t, metaData)
+}
