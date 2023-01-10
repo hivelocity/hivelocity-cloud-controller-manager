@@ -41,7 +41,7 @@ func Test_GetHivelocityDeviceIdFromNode(t *testing.T) {
 		wantErr bool
 	}{
 		{
-			name: "empty deviceID should fail",
+			name: "empty deviceId should fail",
 			args: args{
 				node: &corev1.Node{},
 			},
@@ -49,7 +49,7 @@ func Test_GetHivelocityDeviceIdFromNode(t *testing.T) {
 			wantErr: true,
 		},
 		{
-			name: "Correct deviceID should get parsed",
+			name: "Correct deviceId should get parsed",
 			args: args{
 				node: &corev1.Node{
 					Spec: corev1.NodeSpec{
@@ -90,7 +90,7 @@ func getAPIClient() *hv.APIClient {
 	return hv.NewAPIClient(config)
 }
 
-var deviceID int = 14730
+var mockDeviceId int = 14730
 
 func newHVInstanceV2(t *testing.T) (*HVInstancesV2, *mocks.RemoteAPI){
 	var i2 HVInstancesV2
@@ -104,7 +104,7 @@ func newHVInstanceV2(t *testing.T) (*HVInstancesV2, *mocks.RemoteAPI){
 func newNode() *corev1.Node {
 	return &corev1.Node{
 		Spec: corev1.NodeSpec{
-			ProviderID: strconv.Itoa(deviceID),
+			ProviderID: strconv.Itoa(mockDeviceId),
 		},
 	}
 }
@@ -133,7 +133,7 @@ func Test_InstanceExists(t *testing.T) {
 			ProductId:                0,
 		},
 		nil)
-		
+
 	m.On("GetBareMetalDeviceIdResource", int32(9999999)).Return(
 		nil, ErrNoSuchDevice)
 	myBool, err := i2.InstanceExists(ctx, node)
@@ -166,4 +166,5 @@ func Test_InstanceShutdown(t *testing.T){
 	_, err = i2.InstanceShutdown(ctx, node)
 	require.Error(t, err)
 }
+
 

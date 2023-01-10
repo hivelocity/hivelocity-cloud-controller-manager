@@ -3,6 +3,7 @@ module github.com/hivelocity/hivelocity-cloud-controller-manager
 go 1.18
 
 require (
+	github.com/hexops/autogold v1.3.1
 	github.com/hivelocity/hivelocity-client-go v0.0.0-20230105153629-6ffe6f3d40bb
 	github.com/prometheus/client_golang v1.14.0
 	github.com/stretchr/testify v1.8.0
@@ -13,7 +14,18 @@ require (
 	k8s.io/klog/v2 v2.80.1
 )
 
-require github.com/stretchr/objx v0.4.0 // indirect
+require (
+	github.com/fatih/color v1.13.0 // indirect
+	github.com/hexops/gotextdiff v1.0.3 // indirect
+	github.com/hexops/valast v1.4.3 // indirect
+	github.com/mattn/go-colorable v0.1.13 // indirect
+	github.com/mattn/go-isatty v0.0.16 // indirect
+	github.com/nightlyone/lockfile v1.0.0 // indirect
+	github.com/stretchr/objx v0.4.0 // indirect
+	golang.org/x/mod v0.7.0 // indirect
+	golang.org/x/tools v0.4.0 // indirect
+	mvdan.cc/gofumpt v0.4.0 // indirect
+)
 
 require (
 	cloud.google.com/go/compute/metadata v0.2.3 // indirect
@@ -85,7 +97,7 @@ require (
 	golang.org/x/crypto v0.1.0 // indirect
 	golang.org/x/net v0.3.1-0.20221206200815-1e63c2f08a10 // indirect
 	golang.org/x/oauth2 v0.3.0 // indirect
-	golang.org/x/sync v0.0.0-20220722155255-886fb9371eb4 // indirect
+	golang.org/x/sync v0.1.0 // indirect
 	golang.org/x/sys v0.3.0 // indirect
 	golang.org/x/term v0.3.0 // indirect
 	golang.org/x/text v0.5.0 // indirect

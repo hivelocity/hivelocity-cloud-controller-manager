@@ -25,9 +25,11 @@ import (
 	hv "github.com/hivelocity/hivelocity-client-go/client"
 	"github.com/stretchr/testify/require"
 
+	"github.com/hexops/autogold"
 	"github.com/hivelocity/hivelocity-cloud-controller-manager/hivelocity"
 	"github.com/joho/godotenv"
 	corev1 "k8s.io/api/core/v1"
+	cloudprovider "k8s.io/cloud-provider"
 )
 
 func getAPIClient() *hv.APIClient {
@@ -45,8 +47,9 @@ func getAPIClient() *hv.APIClient {
 	return hv.NewAPIClient(config)
 }
 
-var deviceID int = 14730
-func newHVInstanceV2() *hivelocity.HVInstancesV2{
+var e2eDeviceId int = 14730
+
+func newHVInstanceV2() *hivelocity.HVInstancesV2 {
 	var i2 hivelocity.HVInstancesV2
 	client := getAPIClient()
 	i2.Remote = &hivelocity.RealRemoteAPI{
@@ -59,7 +62,7 @@ func newHVInstanceV2() *hivelocity.HVInstancesV2{
 func newNode() *corev1.Node {
 	return &corev1.Node{
 		Spec: corev1.NodeSpec{
-			ProviderID: strconv.Itoa(deviceID),
+			ProviderID: strconv.Itoa(e2eDeviceId),
 		},
 	}
 }
@@ -83,8 +86,7 @@ func Test_InstanceExists(t *testing.T) {
 	require.Equal(t, "failed to convert node.Spec.ProviderID \"9999999999999999999999999999\" to int32", err.Error())
 }
 
-
-func Test_InstanceShutdown(t *testing.T){
+func Test_InstanceShutdown(t *testing.T) {
 	i2 := newHVInstanceV2()
 	node := newNode()
 	ctx := context.Background()
@@ -97,3 +99,20 @@ func Test_InstanceShutdown(t *testing.T){
 	require.Error(t, err)
 }
 
+func Test_InstanceMetadata(t *testing.T) {
+	i2 := newHVInstanceV2()
+	node := newNode()
+	ctx := context.Background()
+	metaData, err := i2.InstanceMetadata(ctx, node)
+	require.NoError(t, err)
+	autogold.Want("metaData", &cloudprovider.InstanceMetadata{
+		ProviderID: "14730",
+		NodeAddresses: []corev1.NodeAddress{
+			{
+				Type:    corev1.NodeAddressType("ExternalIP"),
+				Address: "66.165.243.74",
+			},
+		},
+		Zone: "LAX2",
+	}).Equal(t, metaData)
+}

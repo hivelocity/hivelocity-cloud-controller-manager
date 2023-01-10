@@ -24,7 +24,8 @@ import (
 	"strconv"
 
 	hv "github.com/hivelocity/hivelocity-client-go/client"
-	v1 "k8s.io/api/core/v1"
+	corev1 "k8s.io/api/core/v1"
+	cloudprovider "k8s.io/cloud-provider"
 )
 
 var ErrNoSuchDevice = errors.New("no such device")
@@ -75,7 +76,7 @@ type HVInstancesV2 struct {
 	Remote RemoteAPI
 }
 
-func GetHivelocityDeviceIdFromNode(node *v1.Node) (int32, error) {
+func GetHivelocityDeviceIdFromNode(node *corev1.Node) (int32, error) {
 	deviceId, err := strconv.ParseInt(node.Spec.ProviderID, 10, 32)
 	if err != nil {
 		return 0, fmt.Errorf("failed to convert node.Spec.ProviderID %q to int32",
@@ -86,12 +87,12 @@ func GetHivelocityDeviceIdFromNode(node *v1.Node) (int32, error) {
 
 // InstanceExists returns true if the instance for the given node exists according to the cloud provider.
 // Use the node.name or node.spec.providerID field to find the node in the cloud provider.
-func (i2 *HVInstancesV2) InstanceExists(ctx context.Context, node *v1.Node) (bool, error) {
-	deviceID, err := GetHivelocityDeviceIdFromNode(node)
+func (i2 *HVInstancesV2) InstanceExists(ctx context.Context, node *corev1.Node) (bool, error) {
+	deviceId, err := GetHivelocityDeviceIdFromNode(node)
 	if err != nil {
 		return false, err
 	}
-	_, err = i2.Remote.GetBareMetalDeviceIdResource(deviceID)
+	_, err = i2.Remote.GetBareMetalDeviceIdResource(deviceId)
 	if err == ErrNoSuchDevice {
 		return false, nil
 	}
@@ -103,12 +104,12 @@ func (i2 *HVInstancesV2) InstanceExists(ctx context.Context, node *v1.Node) (boo
 
 // InstanceShutdown returns true if the instance is shutdown according to the cloud provider.
 // Use the node.name or node.spec.providerID field to find the node in the cloud provider.
-func (i2 *HVInstancesV2) InstanceShutdown(ctx context.Context, node *v1.Node) (bool, error) {
-	deviceID, err := GetHivelocityDeviceIdFromNode(node)
+func (i2 *HVInstancesV2) InstanceShutdown(ctx context.Context, node *corev1.Node) (bool, error) {
+	deviceId, err := GetHivelocityDeviceIdFromNode(node)
 	if err != nil {
 		return false, err
 	}
-	device, _, err := i2.Client.BareMetalDevicesApi.GetBareMetalDeviceIdResource(ctx, deviceID, nil)
+	device, _, err := i2.Client.BareMetalDevicesApi.GetBareMetalDeviceIdResource(ctx, deviceId, nil)
 	if err != nil {
 		return false, err
 	}
@@ -118,6 +119,31 @@ func (i2 *HVInstancesV2) InstanceShutdown(ctx context.Context, node *v1.Node) (b
 	case "OFF":
 		return true, nil
 	default:
-		return false, fmt.Errorf("device with ID %q has unknown PowerStatus %q", deviceID, device.PowerStatus)
+		return false, fmt.Errorf("device with ID %q has unknown PowerStatus %q", deviceId, device.PowerStatus)
 	}
+}
+
+func (i2 *HVInstancesV2) InstanceMetadata(ctx context.Context, node *corev1.Node) (*cloudprovider.InstanceMetadata, error) {
+	deviceId, err := GetHivelocityDeviceIdFromNode(node)
+	if err != nil {
+		return nil, err
+	}
+	device, err := i2.Remote.GetBareMetalDeviceIdResource(deviceId)
+	if err != nil {
+		return nil, err
+	}
+
+	addr := corev1.NodeAddress{
+		Type:    "ExternalIP",
+		Address: device.PrimaryIp,
+	}
+
+	var metaData = cloudprovider.InstanceMetadata{
+		ProviderID:    strconv.Itoa(int(deviceId)),
+		InstanceType:  device.ProductName,
+		NodeAddresses: []corev1.NodeAddress{addr},
+		Zone:          device.LocationName,
+		Region:        "",
+	}
+	return &metaData, nil
 }
