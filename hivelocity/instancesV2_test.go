@@ -92,17 +92,26 @@ func getAPIClient() *hv.APIClient {
 
 var deviceID int = 14730
 
-func Test_InstanceExists(t *testing.T) {
+func newHVInstanceV2(t *testing.T) (*HVInstancesV2, *mocks.RemoteAPI){
 	var i2 HVInstancesV2
 	client := getAPIClient()
-	i2.Client = client
 	m := mocks.NewRemoteAPI(t)
 	i2.Remote = m
-	node := corev1.Node{
+	i2.Client = client
+	return &i2, m
+}
+
+func newNode() *corev1.Node {
+	return &corev1.Node{
 		Spec: corev1.NodeSpec{
 			ProviderID: strconv.Itoa(deviceID),
 		},
 	}
+}
+
+func Test_InstanceExists(t *testing.T) {
+	i2, m := newHVInstanceV2(t)
+	node := newNode()
 	ctx := context.Background()
 	m.On("GetBareMetalDeviceIdResource", int32(14730)).Return(
 		&hv.BareMetalDevice{
@@ -124,19 +133,37 @@ func Test_InstanceExists(t *testing.T) {
 			ProductId:                0,
 		},
 		nil)
+		
 	m.On("GetBareMetalDeviceIdResource", int32(9999999)).Return(
 		nil, ErrNoSuchDevice)
-	myBool, err := i2.InstanceExists(ctx, &node)
+	myBool, err := i2.InstanceExists(ctx, node)
 	require.NoError(t, err)
 	require.Equal(t, true, myBool)
 
 	node.Spec.ProviderID = "9999999"
-	myBool, err = i2.InstanceExists(ctx, &node)
+	myBool, err = i2.InstanceExists(ctx, node)
 	require.Equal(t, false, myBool)
 	require.NoError(t, err)
 
 	node.Spec.ProviderID = "9999999999999999999999999999"
-	myBool, err = i2.InstanceExists(ctx, &node)
+	myBool, err = i2.InstanceExists(ctx, node)
 	require.Equal(t, false, myBool)
 	require.Equal(t, "failed to convert node.Spec.ProviderID \"9999999999999999999999999999\" to int32", err.Error())
 }
+
+
+
+
+func Test_InstanceShutdown(t *testing.T){
+	i2, _ := newHVInstanceV2(t)
+	node := newNode()
+	ctx := context.Background()
+	isDown, err := i2.InstanceShutdown(ctx, node)
+	require.False(t, isDown)
+	require.NoError(t, err)
+
+	node.Spec.ProviderID = "9999999"
+	_, err = i2.InstanceShutdown(ctx, node)
+	require.Error(t, err)
+}
+

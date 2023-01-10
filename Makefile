@@ -172,6 +172,22 @@ fmt: ## Run go fmt against code.
 vet: ## Run go vet against code.
 	go vet ./...
 
+.PHONY: generate-mocks
+generate-mocks:
+	mockery -r --name=RemoteAPI
+
+.PHONY: testall
+testall:
+	go test ./...
+
+.PHONY: unittest
+unittest:
+	go test ./hivelocity
+
+.PHONY: e2e
+e2e:
+	go test ./e2e
+
 
 
 

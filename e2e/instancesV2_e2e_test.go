@@ -83,6 +83,7 @@ func Test_InstanceExists(t *testing.T) {
 	require.Equal(t, "failed to convert node.Spec.ProviderID \"9999999999999999999999999999\" to int32", err.Error())
 }
 
+
 func Test_InstanceShutdown(t *testing.T){
 	i2 := newHVInstanceV2()
 	node := newNode()
