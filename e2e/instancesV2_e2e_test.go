@@ -46,31 +46,53 @@ func getAPIClient() *hv.APIClient {
 }
 
 var deviceID int = 14730
-
-func Test_InstanceExists(t *testing.T) {
+func newHVInstanceV2() *hivelocity.HVInstancesV2{
 	var i2 hivelocity.HVInstancesV2
 	client := getAPIClient()
 	i2.Remote = &hivelocity.RealRemoteAPI{
 		Client: client,
 	}
 	i2.Client = client
-	node := corev1.Node{
+	return &i2
+}
+
+func newNode() *corev1.Node {
+	return &corev1.Node{
 		Spec: corev1.NodeSpec{
 			ProviderID: strconv.Itoa(deviceID),
 		},
 	}
+}
+
+func Test_InstanceExists(t *testing.T) {
+	i2 := newHVInstanceV2()
+	node := newNode()
 	ctx := context.Background()
-	myBool, err := i2.InstanceExists(ctx, &node)
+	myBool, err := i2.InstanceExists(ctx, node)
 	require.NoError(t, err)
 	require.Equal(t, true, myBool)
 
 	node.Spec.ProviderID = "9999999"
-	myBool, err = i2.InstanceExists(ctx, &node)
+	myBool, err = i2.InstanceExists(ctx, node)
 	require.Equal(t, false, myBool)
 	require.NoError(t, err)
 
 	node.Spec.ProviderID = "9999999999999999999999999999"
-	myBool, err = i2.InstanceExists(ctx, &node)
+	myBool, err = i2.InstanceExists(ctx, node)
 	require.Equal(t, false, myBool)
 	require.Equal(t, "failed to convert node.Spec.ProviderID \"9999999999999999999999999999\" to int32", err.Error())
 }
+
+func Test_InstanceShutdown(t *testing.T){
+	i2 := newHVInstanceV2()
+	node := newNode()
+	ctx := context.Background()
+	isDown, err := i2.InstanceShutdown(ctx, node)
+	require.False(t, isDown)
+	require.NoError(t, err)
+
+	node.Spec.ProviderID = "9999999"
+	_, err = i2.InstanceShutdown(ctx, node)
+	require.Error(t, err)
+}
+
