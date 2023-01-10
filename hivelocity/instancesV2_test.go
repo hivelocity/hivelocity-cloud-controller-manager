@@ -92,7 +92,6 @@ func getAPIClient() *hv.APIClient {
 
 var deviceID int = 14730
 
-
 func Test_InstanceExists(t *testing.T) {
 	var i2 HVInstancesV2
 	client := getAPIClient()
@@ -107,26 +106,26 @@ func Test_InstanceExists(t *testing.T) {
 	ctx := context.Background()
 	m.On("GetBareMetalDeviceIdResource", int32(14730)).Return(
 		&hv.BareMetalDevice{
-			Hostname: "",
-			PrimaryIp: "66.165.243.74",
-			CustomIPXEScriptURL: "",
-			LocationName: "LAX2",
-			ServiceId: 0,
-			DeviceId: 14730,
-			ProductName: "",
-			VlanId: 0,
-			Period: "",
-			PublicSshKeyId: 0,
-			Script: "",
-			PowerStatus: "ON",
+			Hostname:                 "",
+			PrimaryIp:                "66.165.243.74",
+			CustomIPXEScriptURL:      "",
+			LocationName:             "LAX2",
+			ServiceId:                0,
+			DeviceId:                 14730,
+			ProductName:              "",
+			VlanId:                   0,
+			Period:                   "",
+			PublicSshKeyId:           0,
+			Script:                   "",
+			PowerStatus:              "ON",
 			CustomIPXEScriptContents: "",
-			OrderId: 0,
-			OsName: "",
-			ProductId: 0,
-		   },
-		   nil)
+			OrderId:                  0,
+			OsName:                   "",
+			ProductId:                0,
+		},
+		nil)
 	m.On("GetBareMetalDeviceIdResource", int32(9999999)).Return(
-		nil, NoSuchDeviceError)
+		nil, ErrNoSuchDevice)
 	myBool, err := i2.InstanceExists(ctx, &node)
 	require.NoError(t, err)
 	require.Equal(t, true, myBool)

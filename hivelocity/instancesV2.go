@@ -27,7 +27,7 @@ import (
 	v1 "k8s.io/api/core/v1"
 )
 
-var NoSuchDeviceError = errors.New("No such device")
+var ErrNoSuchDevice = errors.New("no such device")
 
 type RemoteAPI interface {
 	GetBareMetalDeviceIdResource(deviceId int32) (*hv.BareMetalDevice, error)
@@ -38,7 +38,6 @@ type RealRemoteAPI struct {
 }
 
 var _ RemoteAPI = (*RealRemoteAPI)(nil)
-
 
 func (remote *RealRemoteAPI) GetBareMetalDeviceIdResource(deviceId int32) (*hv.BareMetalDevice, error) {
 	device, response, err := remote.Client.BareMetalDevicesApi.GetBareMetalDeviceIdResource(
@@ -62,7 +61,7 @@ func (remote *RealRemoteAPI) GetBareMetalDeviceIdResource(deviceId int32) (*hv.B
 		}
 
 		if result.Message == "Device not found" {
-			return nil, NoSuchDeviceError
+			return nil, ErrNoSuchDevice
 		}
 		return nil, fmt.Errorf("GetBareMetalDeviceIdResource failed with %d. deviceId %q. %w",
 			response.StatusCode, deviceId, err)
@@ -93,7 +92,7 @@ func (i2 *HVInstancesV2) InstanceExists(ctx context.Context, node *v1.Node) (boo
 		return false, err
 	}
 	_, err = i2.Remote.GetBareMetalDeviceIdResource(deviceID)
-	if err == NoSuchDeviceError {
+	if err == ErrNoSuchDevice {
 		return false, nil
 	}
 	if err != nil {
