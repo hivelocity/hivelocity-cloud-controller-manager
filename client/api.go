@@ -13,7 +13,6 @@ type API interface {
 	GetBareMetalDeviceIdResource(deviceId int32) (*hv.BareMetalDevice, error)
 }
 
-
 type RealAPI struct {
 	Client *hv.APIClient
 }

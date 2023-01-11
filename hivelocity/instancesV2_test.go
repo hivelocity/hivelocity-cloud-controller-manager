@@ -26,9 +26,8 @@ import (
 	hv "github.com/hivelocity/hivelocity-client-go/client"
 	"github.com/hivelocity/hivelocity-cloud-controller-manager/client"
 	"github.com/hivelocity/hivelocity-cloud-controller-manager/mocks"
-	"github.com/stretchr/testify/require"
-
 	"github.com/joho/godotenv"
+	"github.com/stretchr/testify/require"
 	corev1 "k8s.io/api/core/v1"
 	cloudprovider "k8s.io/cloud-provider"
 )
@@ -185,11 +184,35 @@ func Test_InstanceMetadata(t *testing.T) {
 				Address: "66.165.243.74",
 			},
 		},
-		Zone: "LAX2",
+		Zone:   "LAX2",
+		Region: "LAX2",
 	}).Equal(t, metaData)
 
 	node.Spec.ProviderID = "9999999"
 	metaData, err = i2.InstanceMetadata(ctx, node)
 	require.Error(t, err)
 	require.Nil(t, metaData)
+}
+
+func Test_getInstanceTypeFromTags(t *testing.T) {
+	type args struct {
+		tags     []string
+		deviceId int32
+	}
+	tests := []struct {
+		name string
+		args args
+		want string
+	}{
+		{"empty slice returns empty string", args{[]string{}, 1}, ""},
+		{"invalid label value will be skipped", args{[]string{"instance-type=&"}, 1}, ""},
+		{"valid label value will be used", args{[]string{"instance-type=abc"}, 1}, "abc"},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			if got := getInstanceTypeFromTags(tt.args.tags, tt.args.deviceId); got != tt.want {
+				t.Errorf("getInstanceTypeFromTags() = %v, want %v", got, tt.want)
+			}
+		})
+	}
 }

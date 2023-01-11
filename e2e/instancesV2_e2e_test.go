@@ -107,13 +107,15 @@ func Test_InstanceMetadata(t *testing.T) {
 	metaData, err := i2.InstanceMetadata(ctx, node)
 	require.NoError(t, err)
 	autogold.Want("metaData", &cloudprovider.InstanceMetadata{
-		ProviderID: "14730",
+		ProviderID:   "14730",
+		InstanceType: "abc",
 		NodeAddresses: []corev1.NodeAddress{
 			{
 				Type:    corev1.NodeAddressType("ExternalIP"),
 				Address: "66.165.243.74",
 			},
 		},
-		Zone: "LAX2",
+		Zone:   "LAX2",
+		Region: "LAX2",
 	}).Equal(t, metaData)
 }

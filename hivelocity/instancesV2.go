@@ -20,13 +20,15 @@ import (
 	"context"
 	"fmt"
 	"strconv"
+	"strings"
 
 	hv "github.com/hivelocity/hivelocity-client-go/client"
 	"github.com/hivelocity/hivelocity-cloud-controller-manager/client"
 	corev1 "k8s.io/api/core/v1"
+	"k8s.io/apimachinery/pkg/util/validation"
 	cloudprovider "k8s.io/cloud-provider"
+	"k8s.io/klog/v2"
 )
-
 
 // HVInstancesV2 implements cloudprovider.InstanceV2
 type HVInstancesV2 struct {
@@ -100,10 +102,27 @@ func (i2 *HVInstancesV2) InstanceMetadata(ctx context.Context, node *corev1.Node
 
 	var metaData = cloudprovider.InstanceMetadata{
 		ProviderID:    strconv.Itoa(int(deviceId)),
-		InstanceType:  device.ProductName,
+		InstanceType:  getInstanceTypeFromTags(device.Tags, deviceId), // HV tag. Example "instance-type=abc".
 		NodeAddresses: []corev1.NodeAddress{addr},
-		Zone:          device.LocationName,
-		Region:        "",
+		Zone:          device.LocationName, // for example LAX1
+		Region:        device.LocationName, // for example LAX1
 	}
 	return &metaData, nil
+}
+
+func getInstanceTypeFromTags(tags []string, deviceId int32) string {
+	prefix := "instance-type="
+	for _, tag := range tags {
+		if !strings.HasPrefix(tag, prefix) {
+			continue
+		}
+		instanceType := strings.TrimSpace(tag[len(prefix):])
+		if errs := validation.IsValidLabelValue(instanceType); len(errs) != 0 {
+			klog.Errorf("deviceID=%d has invalid tag %q %s", deviceId, tag,
+				strings.Join(errs, "; "))
+			continue
+		}
+		return instanceType
+	}
+	return ""
 }
