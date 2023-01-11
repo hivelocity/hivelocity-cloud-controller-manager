@@ -59,7 +59,6 @@ func main() {
 
 func cloudInitializer(config *cloudcontrollerconfig.CompletedConfig) cloudprovider.Interface {
 	cloudConfig := config.ComponentConfig.KubeCloudShared.CloudProvider
-	// initialize cloud provider with the cloud provider name and config file provided
 	cloud, err := cloudprovider.InitCloudProvider(cloudConfig.Name, cloudConfig.CloudConfigFile)
 	if err != nil {
 		klog.Fatalf("Cloud provider could not be initialized: %v", err)
@@ -68,6 +67,9 @@ func cloudInitializer(config *cloudcontrollerconfig.CompletedConfig) cloudprovid
 		klog.Fatalf("Cloud provider is nil")
 	}
 
+	/*
+	AFAIK this HasClusterID() is not needed
+	https://github.com/kubernetes/cloud-provider/issues/12
 	if !cloud.HasClusterID() {
 		if config.ComponentConfig.KubeCloudShared.AllowUntaggedCloud {
 			klog.Warning("detected a cluster without a ClusterID.  A ClusterID will be required in the future.  Please tag your cluster to avoid any future issues")
@@ -75,6 +77,7 @@ func cloudInitializer(config *cloudcontrollerconfig.CompletedConfig) cloudprovid
 			klog.Fatalf("no ClusterID found.  A ClusterID is required for the cloud provider to function properly.  This check can be bypassed by setting the allow-untagged-cloud option")
 		}
 	}
+	*/
 
 	return cloud
 }

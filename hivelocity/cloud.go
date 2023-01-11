@@ -17,7 +17,6 @@ limitations under the License.
 package hivelocity
 
 import (
-	"context"
 	"fmt"
 	"io"
 	"os"
@@ -56,7 +55,6 @@ const (
 // cloud implements cloudprovider.Interface for Hivelocity.
 type cloud struct {
 	client      *hv.APIClient
-	authContext *context.Context
 	instancesV2 *HVInstancesV2
 	zones       *zones
 	//routes       *cloudprovider.Routes
@@ -72,22 +70,21 @@ func newCloud(config io.Reader) (cloudprovider.Interface, error) {
 		return nil, fmt.Errorf("environment variable %q is required", hivelocityApiKeyENVVar)
 	}
 
-	authContext := context.WithValue(context.Background(), hv.ContextAPIKey, hv.APIKey{
-		Key: apiKey,
-	})
-	apiClient := hv.NewAPIClient(hv.NewConfiguration())
+	apiClientConfig := hv.NewConfiguration()
+	apiClientConfig.AddDefaultHeader("X-API-KEY", apiKey)
+	apiClient := hv.NewAPIClient(apiClientConfig)
 
 	klog.Infof("Hivelocity cloud controller manager %s started\n", providerVersion)
 
-	var i2 HVInstancesV2
-	var api = client.RealAPI{}
-	api.Client = apiClient
-	i2.API = &api
+	i2 := HVInstancesV2{
+		API: &client.RealAPI{
+			Client: apiClient,
+		},
+	}
 
 	return &cloud{
 		client:      apiClient,
 		instancesV2: &i2,
-		authContext: &authContext,
 	}, nil
 }
 
@@ -147,7 +144,6 @@ func (c *cloud) ScrubDNS(nameservers, searches []string) (nsOut, srchOut []strin
 func (c *cloud) HasClusterID() bool {
 	return true
 }
-
 
 func init() {
 	cloudprovider.RegisterCloudProvider(providerName, func(config io.Reader) (cloudprovider.Interface, error) {
