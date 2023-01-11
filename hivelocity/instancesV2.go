@@ -22,7 +22,6 @@ import (
 	"strconv"
 	"strings"
 
-	hv "github.com/hivelocity/hivelocity-client-go/client"
 	"github.com/hivelocity/hivelocity-cloud-controller-manager/client"
 	corev1 "k8s.io/api/core/v1"
 	"k8s.io/apimachinery/pkg/util/validation"
@@ -32,7 +31,6 @@ import (
 
 // HVInstancesV2 implements cloudprovider.InstanceV2
 type HVInstancesV2 struct {
-	Client *hv.APIClient
 	API    client.API
 }
 
@@ -71,7 +69,7 @@ func (i2 *HVInstancesV2) InstanceShutdown(ctx context.Context, node *corev1.Node
 	if err != nil {
 		return false, err
 	}
-	device, _, err := i2.Client.BareMetalDevicesApi.GetBareMetalDeviceIdResource(ctx, deviceId, nil)
+	device,  err := i2.API.GetBareMetalDeviceIdResource(deviceId)
 	if err != nil {
 		return false, err
 	}

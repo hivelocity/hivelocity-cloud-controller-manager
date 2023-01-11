@@ -96,10 +96,8 @@ var mockDeviceId int = 14730
 
 func newHVInstanceV2(t *testing.T) (*HVInstancesV2, *mocks.API) {
 	var i2 HVInstancesV2
-	client := getAPIClient()
 	api := mocks.NewAPI(t)
 	i2.API = api
-	i2.Client = client
 	return &i2, api
 }
 
@@ -157,7 +155,8 @@ func Test_InstanceExists(t *testing.T) {
 }
 
 func Test_InstanceShutdown(t *testing.T) {
-	i2, _ := newHVInstanceV2(t)
+	i2, m := newHVInstanceV2(t)
+	standardMocks(m)
 	node := newNode()
 	ctx := context.Background()
 	isDown, err := i2.InstanceShutdown(ctx, node)

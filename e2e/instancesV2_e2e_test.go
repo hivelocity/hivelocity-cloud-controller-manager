@@ -56,7 +56,6 @@ func newHVInstanceV2() *hivelocity.HVInstancesV2 {
 	i2.API = &client.RealAPI{
 		Client: apiClient,
 	}
-	i2.Client = apiClient
 	return &i2
 }
 

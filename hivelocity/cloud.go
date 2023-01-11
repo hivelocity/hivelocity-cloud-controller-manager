@@ -83,7 +83,6 @@ func newCloud(config io.Reader) (cloudprovider.Interface, error) {
 	var api = client.RealAPI{}
 	api.Client = apiClient
 	i2.API = &api
-	i2.Client = apiClient
 
 	return &cloud{
 		client:      apiClient,
