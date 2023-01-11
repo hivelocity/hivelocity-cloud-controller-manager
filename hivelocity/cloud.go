@@ -56,10 +56,6 @@ const (
 type cloud struct {
 	client      *hv.APIClient
 	instancesV2 *HVInstancesV2
-	zones       *zones
-	//routes       *cloudprovider.Routes
-	//loadBalancer *cloudprovider.LoadBalancer
-	networkID int
 }
 
 var _ cloudprovider.Interface = (*cloud)(nil)
@@ -101,17 +97,11 @@ func (c *cloud) InstancesV2() (cloudprovider.InstancesV2, bool) {
 }
 
 func (c *cloud) Zones() (cloudprovider.Zones, bool) {
-	return c.zones, true
+	return nil, false
 }
 
 func (c *cloud) LoadBalancer() (cloudprovider.LoadBalancer, bool) {
 	return nil, false
-	/* TODO
-	if c.loadBalancer == nil {
-		return nil, false
-	}
-	return c.loadBalancer, true
-	*/
 }
 
 func (c *cloud) Clusters() (cloudprovider.Clusters, bool) {
@@ -119,25 +109,11 @@ func (c *cloud) Clusters() (cloudprovider.Clusters, bool) {
 }
 
 func (c *cloud) Routes() (cloudprovider.Routes, bool) {
-	/* TODO
-	if c.networkID > 0 && os.Getenv(hivelocityNetworkRoutesEnabledENVVar) != "false" {
-		r, err := newRoutes(c.client, c.networkID)
-		if err != nil {
-			klog.ErrorS(err, "create routes provider", "networkID", c.networkID)
-			return nil, false
-		}
-		return r, true
-	}
-	*/
-	return nil, false // If no network is configured, disable the routes part
+	return nil, false
 }
 
 func (c *cloud) ProviderName() string {
 	return providerName
-}
-
-func (c *cloud) ScrubDNS(nameservers, searches []string) (nsOut, srchOut []string) {
-	return nil, nil
 }
 
 // HasClusterID is not implemented.
