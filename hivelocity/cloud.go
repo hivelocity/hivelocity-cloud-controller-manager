@@ -21,35 +21,16 @@ import (
 	"io"
 	"os"
 
-	//"github.com/hivelocity/hivelocity-cloud-controller-manager/internal/hcops"
 	hv "github.com/hivelocity/hivelocity-client-go/client"
 	"github.com/hivelocity/hivelocity-cloud-controller-manager/client"
-
-	//"github.com/hivelocity/hivelocity-client-go/hivelocity/metadata"
 	cloudprovider "k8s.io/cloud-provider"
 	"k8s.io/klog/v2"
 )
 
 const (
-	// TODO remove not used
-	hivelocityApiKeyENVVar   = "HIVELOCITY_API_KEY"
-	hivelocityEndpointENVVar = "HIVELOCITY_ENDPOINT"
-	hivelocityNetworkENVVar  = "HIVELOCITY_NETWORK"
-	hivelocityDebugENVVar    = "HIVELOCITY_DEBUG"
-	// Disable the "master/server is attached to the network" check against the metadata service.
-	hivelocityNetworkDisableAttachedCheckENVVar  = "HIVELOCITY_NETWORK_DISABLE_ATTACHED_CHECK"
-	hivelocityNetworkRoutesEnabledENVVar         = "HIVELOCITY_NETWORK_ROUTES_ENABLED"
-	hivelocityInstancesAddressFamily             = "HIVELOCITY_INSTANCES_ADDRESS_FAMILY"
-	hivelocityLoadBalancersEnabledENVVar         = "HIVELOCITY_LOAD_BALANCERS_ENABLED"
-	hivelocityLoadBalancersLocation              = "HIVELOCITY_LOAD_BALANCERS_LOCATION"
-	hivelocityLoadBalancersNetworkZone           = "HIVELOCITY_LOAD_BALANCERS_NETWORK_ZONE"
-	hivelocityLoadBalancersDisablePrivateIngress = "HIVELOCITY_LOAD_BALANCERS_DISABLE_PRIVATE_INGRESS"
-	hivelocityLoadBalancersUsePrivateIP          = "HIVELOCITY_LOAD_BALANCERS_USE_PRIVATE_IP"
-	hivelocityLoadBalancersDisableIPv6           = "HIVELOCITY_LOAD_BALANCERS_DISABLE_IPV6"
-	hivelocityMetricsEnabledENVVar               = "HIVELOCITY_METRICS_ENABLED"
-	hivelocityMetricsAddress                     = ":8233"
-	providerName                                 = "hivelocity"
-	providerVersion                              = "v1.9.1"
+	hivelocityApiKeyENVVar = "HIVELOCITY_API_KEY"
+	providerName           = "hivelocity"
+	providerVersion        = "v0.0.1"
 )
 
 // cloud implements cloudprovider.Interface for Hivelocity.
