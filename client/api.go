@@ -9,10 +9,13 @@ import (
 	hv "github.com/hivelocity/hivelocity-client-go/client"
 )
 
+// API is a wrapper of hv.APIClient. This way mocking (for tests)
+// is easier.
 type API interface {
 	GetBareMetalDeviceIdResource(deviceId int32) (*hv.BareMetalDevice, error)
 }
 
+// RealAPI implements API.
 type RealAPI struct {
 	Client *hv.APIClient
 }
