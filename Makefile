@@ -38,6 +38,21 @@ export PATH := $(abspath $(TOOLS_BIN_DIR)):$(PATH)
 #
 GOLANGCI_LINT := $(abspath $(TOOLS_BIN_DIR)/golangci-lint)
 
+#
+# Container related variables. Releases should modify and double check these vars.
+#
+REGISTRY ?= quay.io/syself
+PROD_REGISTRY := quay.io/syself
+IMAGE_NAME ?= cluster-api-provider-hetzner
+CONTROLLER_IMG ?= $(REGISTRY)/$(IMAGE_NAME)
+TAG ?= dev
+ARCH ?= amd64
+# Modify these according to your needs
+PLATFORMS  = linux/amd64,linux/arm64
+# This option is for running docker manifest command
+export DOCKER_CLI_EXPERIMENTAL := enabled
+
+
 all: help
 
 ##@ General
@@ -152,33 +167,26 @@ run: generate fmt vet ## Run a controller from your host.
 ## Docker
 ## --------------------------------------
 
-# Create multi-platform docker image. If you have native systems around, using
-# them will be much more efficient at build time. See e.g.
-BUILDXDETECT = ${HOME}/.docker/cli-plugins/docker-buildx
+
 # Just one of the many files created
 QEMUDETECT = /proc/sys/fs/binfmt_misc/qemu-m68k
 
-docker-multiarch: qemu buildx docker-multiarch-builder
+docker-multiarch: qemu docker-multiarch-builder
 	docker buildx build --builder docker-multiarch --pull --push \
 		--platform ${PLATFORMS} \
 		-t $(CONTROLLER_IMG):$(TAG) .
 
-.PHONY: qemu buildx docker-multiarch-builder
+.PHONY: qemu docker-multiarch-builder
 
 qemu:	${QEMUDETECT}
 ${QEMUDETECT}:
 	docker run --rm --privileged multiarch/qemu-user-static --reset -p yes
 
-buildx: ${BUILDXDETECT}
-${BUILDXDETECT}:
-	@echo
-# Output of `uname -m` is too different 
-	@echo "*** 'docker buildx' missing. Install binary for this machine's architecture"
-	@echo "*** from https://github.com/docker/buildx/releases/latest"
-	@echo "*** to ~/.docker/cli-plugins/docker-buildx"
-	@echo
-	@exit 1
-
+docker-multiarch-builder: qemu
+	if ! docker buildx ls | grep -w docker-multiarch > /dev/null; then \
+		docker buildx create --name docker-multiarch && \
+		docker buildx inspect --builder docker-multiarch --bootstrap; \
+	fi
 
 ##@ Development
 
