@@ -5,7 +5,6 @@ go 1.18
 require (
 	github.com/hexops/autogold v1.3.1
 	github.com/hivelocity/hivelocity-client-go v0.0.0-20230105153629-6ffe6f3d40bb
-	github.com/prometheus/client_golang v1.14.0
 	github.com/stretchr/testify v1.8.0
 	k8s.io/api v0.26.0
 	k8s.io/apimachinery v0.26.0
@@ -21,6 +20,7 @@ require (
 	github.com/mattn/go-colorable v0.1.13 // indirect
 	github.com/mattn/go-isatty v0.0.16 // indirect
 	github.com/nightlyone/lockfile v1.0.0 // indirect
+	github.com/prometheus/client_golang v1.14.0 // indirect
 	github.com/stretchr/objx v0.4.0 // indirect
 	golang.org/x/mod v0.7.0 // indirect
 	golang.org/x/tools v0.4.0 // indirect

@@ -18,7 +18,6 @@ package hivelocity
 
 import (
 	"context"
-	"os"
 	"strconv"
 	"testing"
 
@@ -26,7 +25,6 @@ import (
 	hv "github.com/hivelocity/hivelocity-client-go/client"
 	"github.com/hivelocity/hivelocity-cloud-controller-manager/client"
 	"github.com/hivelocity/hivelocity-cloud-controller-manager/mocks"
-	"github.com/joho/godotenv"
 	"github.com/stretchr/testify/require"
 	corev1 "k8s.io/api/core/v1"
 	cloudprovider "k8s.io/cloud-provider"
@@ -75,21 +73,6 @@ func Test_GetHivelocityDeviceIdFromNode(t *testing.T) {
 			}
 		})
 	}
-}
-
-func getAPIClient() *hv.APIClient {
-	err := godotenv.Overload("../.envrc")
-	if err != nil {
-		panic(err)
-	}
-
-	apiKey := os.Getenv("HIVELOCITY_API_KEY")
-	if apiKey == "" {
-		panic("Missing environment variable HIVELOCITY_API_KEY")
-	}
-	config := hv.NewConfiguration()
-	config.AddDefaultHeader("X-API-KEY", apiKey)
-	return hv.NewAPIClient(config)
 }
 
 var mockDeviceId int = 14730
