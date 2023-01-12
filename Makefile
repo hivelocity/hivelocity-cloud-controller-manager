@@ -64,6 +64,13 @@ $(GOLANGCI_LINT): .github/workflows/pr-golangci-lint.yml # Download golanci-lint
 		-b $(TOOLS_DIR)/$(BIN_DIR) \
 		$(shell cat .github/workflows/pr-golangci-lint.yml | grep "\<version:\>" | sed 's/.*version: //')
 
+
+##@ Generate / Manifests
+
+.PHONY: generate
+generate: ## Run all generate-manifests, generate-go-deepcopyand generate-go-conversions targets
+	$(MAKE) generate-mocks
+
 .PHONY: ensure-boilerplate
 ensure-boilerplate: ## Ensures that a boilerplate exists in each file by adding missing boilerplates
 	set -x
@@ -84,9 +91,6 @@ lint: $(GOLANGCI_LINT) ## Lint Golang codebase
 lint-fix: $(GOLANGCI_LINT) ## Lint the Go codebase and run auto-fixers if supported by the linter.
 	GOLANGCI_LINT_EXTRA_ARGS=--fix $(MAKE) lint
 
-yamllint: ## Lints YAML Files
-	yamllint -c .github/linters/yaml-lint.yaml --strict .
-
 ALL_VERIFY_CHECKS = boilerplate shellcheck modules gen
 
 .PHONY: verify
@@ -103,6 +107,13 @@ verify-modules: modules  ## Verify go modules are up to date
 	@if (find . -name 'go.mod' | xargs -n1 grep -q -i 'k8s.io/client-go.*+incompatible'); then \
 		find . -name "go.mod" -exec grep -i 'k8s.io/client-go.*+incompatible' {} \; -print; \
 		echo "go module contains an incompatible client-go version"; exit 1; \
+	fi
+
+.PHONY: verify-gen
+verify-gen: generate  ## Verfiy go generated files are up to date
+	@if !(git diff --quiet HEAD); then \
+		git diff; \
+		echo "generated files are out of date, run make generate"; exit 1; \
 	fi
 
 .PHONY: verify-boilerplate
