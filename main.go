@@ -39,8 +39,6 @@ import (
 	_ "k8s.io/component-base/metrics/prometheus/version"  // for version metric registration
 	"k8s.io/klog/v2"
 	"os"
-	// For existing cloud providers, the option to import legacy providers is still available.
-	// e.g. _"k8s.io/legacy-cloud-providers/<provider>"
 )
 
 func main() {
@@ -68,15 +66,15 @@ func cloudInitializer(config *cloudcontrollerconfig.CompletedConfig) cloudprovid
 	}
 
 	/*
-	AFAIK this HasClusterID() is not needed
-	https://github.com/kubernetes/cloud-provider/issues/12
-	if !cloud.HasClusterID() {
-		if config.ComponentConfig.KubeCloudShared.AllowUntaggedCloud {
-			klog.Warning("detected a cluster without a ClusterID.  A ClusterID will be required in the future.  Please tag your cluster to avoid any future issues")
-		} else {
-			klog.Fatalf("no ClusterID found.  A ClusterID is required for the cloud provider to function properly.  This check can be bypassed by setting the allow-untagged-cloud option")
+		AFAIK this HasClusterID() is not needed
+		https://github.com/kubernetes/cloud-provider/issues/12
+		if !cloud.HasClusterID() {
+			if config.ComponentConfig.KubeCloudShared.AllowUntaggedCloud {
+				klog.Warning("detected a cluster without a ClusterID.  A ClusterID will be required in the future.  Please tag your cluster to avoid any future issues")
+			} else {
+				klog.Fatalf("no ClusterID found.  A ClusterID is required for the cloud provider to function properly.  This check can be bypassed by setting the allow-untagged-cloud option")
+			}
 		}
-	}
 	*/
 
 	return cloud

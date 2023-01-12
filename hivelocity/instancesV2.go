@@ -31,7 +31,7 @@ import (
 
 // HVInstancesV2 implements cloudprovider.InstanceV2
 type HVInstancesV2 struct {
-	API    client.API
+	API client.API
 }
 
 var _ cloudprovider.InstancesV2 = &HVInstancesV2{}
@@ -69,7 +69,7 @@ func (i2 *HVInstancesV2) InstanceShutdown(ctx context.Context, node *corev1.Node
 	if err != nil {
 		return false, err
 	}
-	device,  err := i2.API.GetBareMetalDeviceIdResource(deviceId)
+	device, err := i2.API.GetBareMetalDeviceIdResource(deviceId)
 	if err != nil {
 		return false, err
 	}
