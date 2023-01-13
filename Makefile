@@ -150,11 +150,6 @@ clean-bin: ## Remove all generated helper binaries
 	rm -rf $(BIN_DIR)
 	rm -rf $(TOOLS_BIN_DIR)
 
-.PHONY: clean-docker-all
-clean-docker-all: ## Erases all container and images
-	./hack/erase-docker-all.sh
-
-
 ##@ Build
 
 build: generate fmt vet ## Build manager binary.
