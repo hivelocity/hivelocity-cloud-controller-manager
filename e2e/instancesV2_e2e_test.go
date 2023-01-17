@@ -25,7 +25,6 @@ import (
 	hv "github.com/hivelocity/hivelocity-client-go/client"
 	"github.com/stretchr/testify/require"
 
-	"github.com/hexops/autogold"
 	"github.com/hivelocity/hivelocity-cloud-controller-manager/client"
 	"github.com/hivelocity/hivelocity-cloud-controller-manager/hivelocity"
 	"github.com/joho/godotenv"
@@ -105,7 +104,7 @@ func Test_InstanceMetadata(t *testing.T) {
 	ctx := context.Background()
 	metaData, err := i2.InstanceMetadata(ctx, node)
 	require.NoError(t, err)
-	autogold.Want("metaData", &cloudprovider.InstanceMetadata{
+	require.Equal(t, &cloudprovider.InstanceMetadata{
 		ProviderID:   "14730",
 		InstanceType: "abc",
 		NodeAddresses: []corev1.NodeAddress{
@@ -116,5 +115,5 @@ func Test_InstanceMetadata(t *testing.T) {
 		},
 		Zone:   "LAX2",
 		Region: "LAX2",
-	}).Equal(t, metaData)
+	}, metaData)
 }

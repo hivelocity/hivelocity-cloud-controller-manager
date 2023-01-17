@@ -21,7 +21,6 @@ import (
 	"strconv"
 	"testing"
 
-	"github.com/hexops/autogold"
 	hv "github.com/hivelocity/hivelocity-client-go/client"
 	"github.com/hivelocity/hivelocity-cloud-controller-manager/client"
 	"github.com/hivelocity/hivelocity-cloud-controller-manager/mocks"
@@ -158,7 +157,7 @@ func Test_InstanceMetadata(t *testing.T) {
 	standardMocks(m)
 	metaData, err := i2.InstanceMetadata(ctx, node)
 	require.NoError(t, err)
-	autogold.Want("metaData", &cloudprovider.InstanceMetadata{
+	require.Equal(t, &cloudprovider.InstanceMetadata{
 		ProviderID: "14730",
 		NodeAddresses: []corev1.NodeAddress{
 			{
@@ -168,7 +167,7 @@ func Test_InstanceMetadata(t *testing.T) {
 		},
 		Zone:   "LAX2",
 		Region: "LAX2",
-	}).Equal(t, metaData)
+	}, metaData)
 
 	node.Spec.ProviderID = "9999999"
 	metaData, err = i2.InstanceMetadata(ctx, node)
