@@ -80,6 +80,9 @@ $(GOLANGCI_LINT): .github/workflows/pr-golangci-lint.yml # Download golanci-lint
 		$(shell cat .github/workflows/pr-golangci-lint.yml | grep "\<version:\>" | sed 's/.*version: //')
 
 
+mockery:
+	go install github.com/vektra/mockery/v2@v2.16.0
+
 ##@ Generate / Manifests
 
 .PHONY: generate
@@ -192,17 +195,9 @@ vet: ## Run go vet against code.
 	go vet ./...
 
 .PHONY: generate-mocks
-generate-mocks:
+generate-mocks: mockery
 	mockery -r --name=API
 
-.PHONY: testall
-testall:
+.PHONY: test
+test:
 	go test ./...
-
-.PHONY: unittest
-unittest:
-	go test ./hivelocity
-
-
-
-
