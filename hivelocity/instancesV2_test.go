@@ -133,7 +133,7 @@ func Test_InstanceExists(t *testing.T) {
 	node.Spec.ProviderID = "9999999999999999999999999999"
 	myBool, err = i2.InstanceExists(ctx, node)
 	require.Equal(t, false, myBool)
-	require.Equal(t, "failed to convert node.Spec.ProviderID \"9999999999999999999999999999\" to int32", err.Error())
+	require.Equal(t, "GetHivelocityDeviceIdFromNode(node) failed: failed to convert node.Spec.ProviderID \"9999999999999999999999999999\" to int32", err.Error())
 }
 
 func Test_InstanceShutdown(t *testing.T) {

@@ -50,14 +50,14 @@ func GetHivelocityDeviceIdFromNode(node *corev1.Node) (int32, error) {
 func (i2 *HVInstancesV2) InstanceExists(ctx context.Context, node *corev1.Node) (bool, error) {
 	deviceId, err := GetHivelocityDeviceIdFromNode(node)
 	if err != nil {
-		return false, err
+		return false, fmt.Errorf("GetHivelocityDeviceIdFromNode(node) failed: %w", err)
 	}
 	_, err = i2.API.GetBareMetalDeviceIdResource(deviceId)
 	if err == client.ErrNoSuchDevice {
 		return false, nil
 	}
 	if err != nil {
-		return false, err
+		return false, fmt.Errorf("i2.API.GetBareMetalDeviceIdResource(deviceId) failed: %w", err)
 	}
 	return true, nil
 }
@@ -67,11 +67,11 @@ func (i2 *HVInstancesV2) InstanceExists(ctx context.Context, node *corev1.Node) 
 func (i2 *HVInstancesV2) InstanceShutdown(ctx context.Context, node *corev1.Node) (bool, error) {
 	deviceId, err := GetHivelocityDeviceIdFromNode(node)
 	if err != nil {
-		return false, err
+		return false, fmt.Errorf("GetHivelocityDeviceIdFromNode(node) failed: %w", err)
 	}
 	device, err := i2.API.GetBareMetalDeviceIdResource(deviceId)
 	if err != nil {
-		return false, err
+		return false, fmt.Errorf("i2.API.GetBareMetalDeviceIdResource(deviceId) failed: %w", err)
 	}
 	switch device.PowerStatus {
 	case "ON":
@@ -86,11 +86,11 @@ func (i2 *HVInstancesV2) InstanceShutdown(ctx context.Context, node *corev1.Node
 func (i2 *HVInstancesV2) InstanceMetadata(ctx context.Context, node *corev1.Node) (*cloudprovider.InstanceMetadata, error) {
 	deviceId, err := GetHivelocityDeviceIdFromNode(node)
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("GetHivelocityDeviceIdFromNode(node) failed: %w", err)
 	}
 	device, err := i2.API.GetBareMetalDeviceIdResource(deviceId)
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("i2.API.GetBareMetalDeviceIdResource(deviceId) failed: %w", err)
 	}
 
 	addr := corev1.NodeAddress{
