@@ -30,57 +30,27 @@ import (
 )
 
 func Test_GetHivelocityDeviceIdFromNode(t *testing.T) {
-	type args struct {
-		node *corev1.Node
-	}
-	tests := []struct {
-		name    string
-		args    args
-		want    int32
-		wantErr bool
-	}{
-		{
-			name: "empty deviceId should fail",
-			args: args{
-				node: &corev1.Node{},
-			},
-			want:    0,
-			wantErr: true,
-		},
-		{
-			name: "Correct deviceId should get parsed",
-			args: args{
-				node: &corev1.Node{
-					Spec: corev1.NodeSpec{
-						ProviderID: "hivelocity://12345",
-					},
-				},
-			},
-			want:    12345,
-			wantErr: false,
-		},
-	}
-	for _, tt := range tests {
-		t.Run(tt.name, func(t *testing.T) {
-			got, err := GetHivelocityDeviceIdFromNode(tt.args.node)
-			if (err != nil) != tt.wantErr {
-				t.Errorf("GetHivelocityDeviceIdFromNode() error = %v, wantErr %v", err, tt.wantErr)
-				return
-			}
-			if got != tt.want {
-				t.Errorf("GetHivelocityDeviceIdFromNode() = %v, want %v", got, tt.want)
-			}
-		})
-	}
+	// Empty ProviderID should fail
+	i, err := GetHivelocityDeviceIdFromNode(&corev1.Node{})
+	require.Equal(t, int32(0), i)
+	require.Error(t, err)
+
+	// Correct ProviderID should get parsed
+	i, err = GetHivelocityDeviceIdFromNode(&corev1.Node{
+		Spec: corev1.NodeSpec{
+			ProviderID: "hivelocity://12345",
+		}})
+	require.Equal(t, int32(12345), i)
+	require.NoError(t, err)
 }
 
 var mockDeviceId int = 14730
 
 func newHVInstanceV2(t *testing.T) (*HVInstancesV2, *mocks.API) {
-	var i2 HVInstancesV2
 	api := mocks.NewAPI(t)
-	i2.API = api
-	return &i2, api
+	return &HVInstancesV2{
+		API: api,
+	}, api
 }
 
 func newNode() *corev1.Node {
