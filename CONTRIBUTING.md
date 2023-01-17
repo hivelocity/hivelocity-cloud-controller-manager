@@ -67,4 +67,3 @@ this should generally not be the case.
 
 All changes must be code reviewed. Coding conventions and standards are explained in the official [developer docs](https://github.com/kubernetes/community/tree/master/contributors/devel). Expect reviewers to request that you avoid common [go style mistakes](https://github.com/golang/go/wiki/CodeReviewComments) in your PRs.
 
-In case you want to run our E2E tests locally, please refer to [Testing](docs/developers/development.md#submitting-prs-and-testing) guide. 
