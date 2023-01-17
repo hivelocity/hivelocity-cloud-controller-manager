@@ -203,10 +203,6 @@ testall:
 unittest:
 	go test ./hivelocity
 
-.PHONY: e2e
-e2e:
-	go test ./e2e
-
 
 
 
