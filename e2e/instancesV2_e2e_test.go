@@ -18,8 +18,8 @@ package hivelocity
 
 import (
 	"context"
+	"fmt"
 	"os"
-	"strconv"
 	"testing"
 
 	hv "github.com/hivelocity/hivelocity-client-go/client"
@@ -61,7 +61,7 @@ func newHVInstanceV2() *hivelocity.HVInstancesV2 {
 func newNode() *corev1.Node {
 	return &corev1.Node{
 		Spec: corev1.NodeSpec{
-			ProviderID: strconv.Itoa(e2eDeviceId),
+			ProviderID: fmt.Sprintf("hivelocity://%d", e2eDeviceId),
 		},
 	}
 }
@@ -74,15 +74,15 @@ func Test_InstanceExists(t *testing.T) {
 	require.NoError(t, err)
 	require.Equal(t, true, myBool)
 
-	node.Spec.ProviderID = "9999999"
+	node.Spec.ProviderID = "hivelocity://9999999"
 	myBool, err = i2.InstanceExists(ctx, node)
 	require.Equal(t, false, myBool)
 	require.NoError(t, err)
 
-	node.Spec.ProviderID = "9999999999999999999999999999"
+	node.Spec.ProviderID = "hivelocity://9999999999999999999999999999"
 	myBool, err = i2.InstanceExists(ctx, node)
 	require.Equal(t, false, myBool)
-	require.Equal(t, "GetHivelocityDeviceIdFromNode(node) failed: failed to convert node.Spec.ProviderID \"9999999999999999999999999999\" to int32", err.Error())
+	require.Equal(t, "GetHivelocityDeviceIdFromNode(node) failed: failed to convert node.Spec.ProviderID \"hivelocity://9999999999999999999999999999\" to int32", err.Error())
 }
 
 func Test_InstanceShutdown(t *testing.T) {

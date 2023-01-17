@@ -18,7 +18,7 @@ package hivelocity
 
 import (
 	"context"
-	"strconv"
+	"fmt"
 	"testing"
 
 	hv "github.com/hivelocity/hivelocity-client-go/client"
@@ -52,7 +52,7 @@ func Test_GetHivelocityDeviceIdFromNode(t *testing.T) {
 			args: args{
 				node: &corev1.Node{
 					Spec: corev1.NodeSpec{
-						ProviderID: "12345",
+						ProviderID: "hivelocity://12345",
 					},
 				},
 			},
@@ -86,7 +86,7 @@ func newHVInstanceV2(t *testing.T) (*HVInstancesV2, *mocks.API) {
 func newNode() *corev1.Node {
 	return &corev1.Node{
 		Spec: corev1.NodeSpec{
-			ProviderID: strconv.Itoa(mockDeviceId),
+			ProviderID: fmt.Sprintf("hivelocity://%d", mockDeviceId),
 		},
 	}
 }
@@ -125,15 +125,15 @@ func Test_InstanceExists(t *testing.T) {
 	require.NoError(t, err)
 	require.Equal(t, true, myBool)
 
-	node.Spec.ProviderID = "9999999"
+	node.Spec.ProviderID = "hivelocity://9999999"
 	myBool, err = i2.InstanceExists(ctx, node)
 	require.Equal(t, false, myBool)
 	require.NoError(t, err)
 
-	node.Spec.ProviderID = "9999999999999999999999999999"
+	node.Spec.ProviderID = "hivelocity://9999999999999999999999999999"
 	myBool, err = i2.InstanceExists(ctx, node)
 	require.Equal(t, false, myBool)
-	require.Equal(t, "GetHivelocityDeviceIdFromNode(node) failed: failed to convert node.Spec.ProviderID \"9999999999999999999999999999\" to int32", err.Error())
+	require.Equal(t, "GetHivelocityDeviceIdFromNode(node) failed: failed to convert node.Spec.ProviderID \"hivelocity://9999999999999999999999999999\" to int32", err.Error())
 }
 
 func Test_InstanceShutdown(t *testing.T) {
@@ -145,9 +145,10 @@ func Test_InstanceShutdown(t *testing.T) {
 	require.False(t, isDown)
 	require.NoError(t, err)
 
-	node.Spec.ProviderID = "9999999"
+	node.Spec.ProviderID = "hivelocity://9999999"
 	_, err = i2.InstanceShutdown(ctx, node)
 	require.Error(t, err)
+	require.Equal(t, "i2.API.GetBareMetalDeviceIdResource(deviceId) failed: no such device", err.Error())
 }
 
 func Test_InstanceMetadata(t *testing.T) {
@@ -169,9 +170,10 @@ func Test_InstanceMetadata(t *testing.T) {
 		Region: "LAX2",
 	}, metaData)
 
-	node.Spec.ProviderID = "9999999"
+	node.Spec.ProviderID = "hivelocity://9999999"
 	metaData, err = i2.InstanceMetadata(ctx, node)
 	require.Error(t, err)
+	require.Equal(t, "i2.API.GetBareMetalDeviceIdResource(deviceId) failed: no such device", err.Error())
 	require.Nil(t, metaData)
 }
 

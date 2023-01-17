@@ -37,7 +37,12 @@ type HVInstancesV2 struct {
 var _ cloudprovider.InstancesV2 = &HVInstancesV2{}
 
 func GetHivelocityDeviceIdFromNode(node *corev1.Node) (int32, error) {
-	deviceId, err := strconv.ParseInt(node.Spec.ProviderID, 10, 32)
+	providerPrefix := providerName + "://"
+	if !strings.HasPrefix(node.Spec.ProviderID, providerPrefix) {
+		return 0, fmt.Errorf("missing prefix %q in node.Spec.ProviderID %q",
+			providerPrefix, node.Spec.ProviderID)
+	}
+	deviceId, err := strconv.ParseInt(node.Spec.ProviderID[len(providerPrefix):], 10, 32)
 	if err != nil {
 		return 0, fmt.Errorf("failed to convert node.Spec.ProviderID %q to int32",
 			node.Spec.ProviderID)
