@@ -1,6 +1,6 @@
 module github.com/hivelocity/hivelocity-cloud-controller-manager
 
-go 1.18
+go 1.19
 
 require (
 	github.com/hivelocity/hivelocity-client-go v0.0.0-20230105153629-6ffe6f3d40bb
