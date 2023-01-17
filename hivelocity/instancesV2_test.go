@@ -148,22 +148,18 @@ func Test_InstanceMetadata(t *testing.T) {
 }
 
 func Test_getInstanceTypeFromTags(t *testing.T) {
-	type args struct {
-		tags     []string
-		deviceId int32
-	}
 	tests := []struct {
 		name string
-		args args
+		tags []string
 		want string
 	}{
-		{"empty slice returns empty string", args{[]string{}, 1}, ""},
-		{"invalid label value will be skipped", args{[]string{"instance-type=&"}, 1}, ""},
-		{"valid label value will be used", args{[]string{"instance-type=abc"}, 1}, "abc"},
+		{"empty slice returns empty string", []string{}, ""},
+		{"invalid label value will be skipped", []string{"instance-type=&"}, ""},
+		{"valid label value will be used", []string{"instance-type=abc"}, "abc"},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			if got := getInstanceTypeFromTags(tt.args.tags, tt.args.deviceId); got != tt.want {
+			if got := getInstanceTypeFromTags(tt.tags, 1); got != tt.want {
 				t.Errorf("getInstanceTypeFromTags() = %v, want %v", got, tt.want)
 			}
 		})
