@@ -43,7 +43,7 @@ GOLANGCI_LINT := $(abspath $(TOOLS_BIN_DIR)/golangci-lint)
 #
 REGISTRY ?= quay.io/syself
 PROD_REGISTRY := quay.io/syself
-IMAGE_NAME ?= cluster-api-provider-hetzner
+IMAGE_NAME ?= cluster-api-provider-hivelocity
 CONTROLLER_IMG ?= $(REGISTRY)/$(IMAGE_NAME)
 TAG ?= dev
 ARCH ?= amd64

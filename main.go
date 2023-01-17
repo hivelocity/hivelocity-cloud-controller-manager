@@ -19,11 +19,6 @@ limitations under the License.
 // The external controller manager is responsible for running controller loops that
 // are cloud provider dependent. It uses the API to listen to new events on resources.
 
-// This file should be written by each cloud provider.
-// For a minimal working example, please refer to k8s.io/cloud-provider/sample/basic_main.go
-// For more details, please refer to k8s.io/kubernetes/cmd/cloud-controller-manager/main.go
-// The current file demonstrate how other cloud provider should leverage CCM and it uses fake parameters. Please modify for your own use.
-
 package main
 
 import (
