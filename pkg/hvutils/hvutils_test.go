@@ -31,10 +31,30 @@ func Test_getInstanceTypeFromTags(t *testing.T) {
 		want string
 		err  error
 	}{
-		{"empty slice returns empty string", []string{}, "", errors.New(errors.New("No instance-type tags found on deviceId=1").Error())},
-		{"invalid label value will be skipped", []string{"instance-type=&"}, "", errors.New(errors.New("deviceID=1 has invalid tag \"&\" a valid label must be an empty string or consist of alphanumeric characters, '-', '_' or '.', and must start and end with an alphanumeric character (e.g. 'MyValue',  or 'my_value',  or '12345', regex used for validation is '(([A-Za-z0-9][-A-Za-z0-9_.]*)?[A-Za-z0-9])?')").Error())},
-		{"valid label value will be used", []string{"instance-type=abc"}, "abc", nil},
-		{"two labels", []string{"instance-type=abc", "instance-type=abc"}, "", errors.New(errors.New("More than one instance-type tags found on deviceId=1: [abc abc]").Error())},
+		{
+			name: "empty slice returns empty string",
+			tags: []string{},
+			want: "",
+			err:  errors.New(errors.New("No instance-type tags found on deviceId=1").Error()),
+		},
+		{
+			name: "invalid label value will be skipped",
+			tags: []string{"instance-type=&"},
+			want: "",
+			err:  errors.New(errors.New("deviceID=1 has invalid tag \"&\" a valid label must be an empty string or consist of alphanumeric characters, '-', '_' or '.', and must start and end with an alphanumeric character (e.g. 'MyValue',  or 'my_value',  or '12345', regex used for validation is '(([A-Za-z0-9][-A-Za-z0-9_.]*)?[A-Za-z0-9])?')").Error()),
+		},
+		{
+			name: "valid label value will be used",
+			tags: []string{"instance-type=abc"},
+			want: "abc",
+			err:  nil,
+		},
+		{
+			name: "two labels",
+			tags: []string{"instance-type=abc", "instance-type=abc"},
+			want: "",
+			err:  errors.New(errors.New("More than one instance-type tags found on deviceId=1: [abc abc]").Error()),
+		},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
