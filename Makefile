@@ -41,9 +41,9 @@ GOLANGCI_LINT := $(abspath $(TOOLS_BIN_DIR)/golangci-lint)
 #
 # Container related variables. Releases should modify and double check these vars.
 #
-REGISTRY ?= quay.io/syself
-PROD_REGISTRY := quay.io/syself
-IMAGE_NAME ?= cluster-api-provider-hivelocity
+REGISTRY ?= ghcr.io/hivelocity
+PROD_REGISTRY := ghcr.io/hivelocity
+IMAGE_NAME ?= hivelocity-cloud-controller-manager-staging
 CONTROLLER_IMG ?= $(REGISTRY)/$(IMAGE_NAME)
 TAG ?= dev
 ARCH ?= amd64
