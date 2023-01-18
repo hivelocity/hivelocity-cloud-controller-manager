@@ -32,19 +32,19 @@ import (
 
 func Test_GetHivelocityDeviceIdFromNode(t *testing.T) {
 	var tests = []struct {
-		providerId     string
-		wantProviderId int32
-		wantErrString  string
+		providerId    string
+		wantDeviceId  int32
+		wantErrString string
 	}{
 		{
-			providerId:     "",
-			wantProviderId: 0,
-			wantErrString:  "xxmissing prefix \"hivelocity://\" in node.Spec.ProviderID \"\"",
+			providerId:    "",
+			wantDeviceId:  0,
+			wantErrString: "xxmissing prefix \"hivelocity://\" in node.Spec.ProviderID \"\"",
 		},
 		{
-			providerId:     "hivelocity://12345",
-			wantProviderId: 12345,
-			wantErrString:  "",
+			providerId:    "hivelocity://12345",
+			wantDeviceId:  12345,
+			wantErrString: "",
 		},
 	}
 	var node = &corev1.Node{}
@@ -58,7 +58,7 @@ func Test_GetHivelocityDeviceIdFromNode(t *testing.T) {
 			require.Error(t, gotErr, msg)
 			require.Equal(t, row.wantErrString, gotErr.Error(), msg)
 		}
-		require.Equal(t, row.wantProviderId, gotProviderId, msg)
+		require.Equal(t, row.wantDeviceId, gotProviderId, msg)
 	}
 }
 
