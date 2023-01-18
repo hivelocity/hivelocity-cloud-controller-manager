@@ -48,17 +48,17 @@ func Test_GetHivelocityDeviceIdFromNode(t *testing.T) {
 		},
 	}
 	var node = &corev1.Node{}
-	for _, row := range tests {
-		node.Spec.ProviderID = row.providerId
+	for _, tt := range tests {
+		node.Spec.ProviderID = tt.providerId
 		gotProviderId, gotErr := GetHivelocityDeviceIdFromNode(node)
-		msg := fmt.Sprintf("Input: providerId=%q", row.providerId)
-		if row.wantErrString == "" {
+		msg := fmt.Sprintf("Input: providerId=%q", tt.providerId)
+		if tt.wantErrString == "" {
 			require.NoError(t, gotErr, msg)
 		} else {
 			require.Error(t, gotErr, msg)
-			require.Equal(t, row.wantErrString, gotErr.Error(), msg)
+			require.Equal(t, tt.wantErrString, gotErr.Error(), msg)
 		}
-		require.Equal(t, row.wantDeviceId, gotProviderId, msg)
+		require.Equal(t, tt.wantDeviceId, gotProviderId, msg)
 	}
 }
 
@@ -131,17 +131,17 @@ func Test_InstanceExists(t *testing.T) {
 			wantErrString: "GxetHivelocityDeviceIdFromNode(node) failed: failed to convert node.Spec.ProviderID \"hivelocity://999999999999999999\" to int32",
 		},
 	}
-	for _, row := range tests {
-		node.Spec.ProviderID = fmt.Sprintf("hivelocity://%d", row.providerId)
+	for _, tt := range tests {
+		node.Spec.ProviderID = fmt.Sprintf("hivelocity://%d", tt.providerId)
 		gotBool, gotErr := i2.InstanceExists(ctx, node)
-		msg := fmt.Sprintf("Input: providerId=%+v", row.providerId)
-		if row.wantErrString == "" {
+		msg := fmt.Sprintf("Input: providerId=%+v", tt.providerId)
+		if tt.wantErrString == "" {
 			require.NoError(t, gotErr, msg)
 		} else {
 			require.Error(t, gotErr, msg)
-			require.Equal(t, row.wantErrString, gotErr.Error(), msg)
+			require.Equal(t, tt.wantErrString, gotErr.Error(), msg)
 		}
-		require.Equal(t, row.wantBool, gotBool, row.providerId, msg)
+		require.Equal(t, tt.wantBool, gotBool, tt.providerId, msg)
 	}
 }
 
@@ -166,17 +166,17 @@ func Test_InstanceShutdown(t *testing.T) {
 			wantErrString: "i2.API.GetBareMetalDeviceIdResource(deviceId) failed: no such device",
 		},
 	}
-	for _, row := range tests {
-		node.Spec.ProviderID = fmt.Sprintf("hivelocity://%d", row.providerId)
+	for _, tt := range tests {
+		node.Spec.ProviderID = fmt.Sprintf("hivelocity://%d", tt.providerId)
 		gotBool, gotErr := i2.InstanceShutdown(ctx, node)
-		msg := fmt.Sprintf("Input: providerId=%+v", row.providerId)
-		if row.wantErrString == "" {
+		msg := fmt.Sprintf("Input: providerId=%+v", tt.providerId)
+		if tt.wantErrString == "" {
 			require.NoError(t, gotErr, msg)
 		} else {
 			require.Error(t, gotErr, msg)
-			require.Equal(t, row.wantErrString, gotErr.Error(), msg)
+			require.Equal(t, tt.wantErrString, gotErr.Error(), msg)
 		}
-		require.Equal(t, row.wantBool, gotBool, msg)
+		require.Equal(t, tt.wantBool, gotBool, msg)
 	}
 }
 
@@ -212,16 +212,16 @@ func Test_InstanceMetadata(t *testing.T) {
 			wantErrString: "i2.API.GetBareMetalDeviceIdResource(deviceId) failed: no such device",
 		},
 	}
-	for _, row := range tests {
-		node.Spec.ProviderID = fmt.Sprintf("hivelocity://%d", row.providerId)
+	for _, tt := range tests {
+		node.Spec.ProviderID = fmt.Sprintf("hivelocity://%d", tt.providerId)
 		gotMetaData, gotErr := i2.InstanceMetadata(ctx, node)
-		msg := fmt.Sprintf("Input: providerId=%+v", row.providerId)
-		if row.wantErrString == "" {
+		msg := fmt.Sprintf("Input: providerId=%+v", tt.providerId)
+		if tt.wantErrString == "" {
 			require.NoError(t, gotErr, msg)
 		} else {
 			require.Error(t, gotErr, msg)
-			require.Equal(t, row.wantErrString, gotErr.Error(), msg)
+			require.Equal(t, tt.wantErrString, gotErr.Error(), msg)
 		}
-		require.Equal(t, row.wantMetaData, gotMetaData, msg)
+		require.Equal(t, tt.wantMetaData, gotMetaData, msg)
 	}
 }
