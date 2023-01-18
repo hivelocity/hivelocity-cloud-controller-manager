@@ -28,7 +28,7 @@ import (
 // API is a wrapper of hv.APIClient. This way mocking (for tests)
 // is easier.
 type API interface {
-	GetBareMetalDevice(deviceId int32) (*hv.BareMetalDevice, error)
+	GetBareMetalDevice(ctx context.Context, deviceId int32) (*hv.BareMetalDevice, error)
 }
 
 // RealAPI implements API.
@@ -40,9 +40,9 @@ var _ API = (*RealAPI)(nil)
 
 var ErrNoSuchDevice = errors.New("no such device")
 
-func (api *RealAPI) GetBareMetalDevice(deviceId int32) (*hv.BareMetalDevice, error) {
+func (api *RealAPI) GetBareMetalDevice(ctx context.Context, deviceId int32) (*hv.BareMetalDevice, error) {
 	device, response, err := api.Client.BareMetalDevicesApi.GetBareMetalDeviceIdResource(
-		context.Background(), deviceId, nil)
+		ctx, deviceId, nil)
 	if err != nil {
 		err, ok := err.(hv.GenericSwaggerError)
 		if !ok {

@@ -3,6 +3,8 @@
 package mocks
 
 import (
+	context "context"
+
 	swagger "github.com/hivelocity/hivelocity-client-go/client"
 	mock "github.com/stretchr/testify/mock"
 )
@@ -12,13 +14,13 @@ type API struct {
 	mock.Mock
 }
 
-// GetBareMetalDevice provides a mock function with given fields: deviceId
-func (_m *API) GetBareMetalDevice(deviceId int32) (*swagger.BareMetalDevice, error) {
-	ret := _m.Called(deviceId)
+// GetBareMetalDevice provides a mock function with given fields: ctx, deviceId
+func (_m *API) GetBareMetalDevice(ctx context.Context, deviceId int32) (*swagger.BareMetalDevice, error) {
+	ret := _m.Called(ctx, deviceId)
 
 	var r0 *swagger.BareMetalDevice
-	if rf, ok := ret.Get(0).(func(int32) *swagger.BareMetalDevice); ok {
-		r0 = rf(deviceId)
+	if rf, ok := ret.Get(0).(func(context.Context, int32) *swagger.BareMetalDevice); ok {
+		r0 = rf(ctx, deviceId)
 	} else {
 		if ret.Get(0) != nil {
 			r0 = ret.Get(0).(*swagger.BareMetalDevice)
@@ -26,8 +28,8 @@ func (_m *API) GetBareMetalDevice(deviceId int32) (*swagger.BareMetalDevice, err
 	}
 
 	var r1 error
-	if rf, ok := ret.Get(1).(func(int32) error); ok {
-		r1 = rf(deviceId)
+	if rf, ok := ret.Get(1).(func(context.Context, int32) error); ok {
+		r1 = rf(ctx, deviceId)
 	} else {
 		r1 = ret.Error(1)
 	}

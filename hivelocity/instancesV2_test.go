@@ -24,6 +24,7 @@ import (
 	hv "github.com/hivelocity/hivelocity-client-go/client"
 	"github.com/hivelocity/hivelocity-cloud-controller-manager/client"
 	"github.com/hivelocity/hivelocity-cloud-controller-manager/mocks"
+	"github.com/stretchr/testify/mock"
 	"github.com/stretchr/testify/require"
 	corev1 "k8s.io/api/core/v1"
 	cloudprovider "k8s.io/cloud-provider"
@@ -62,7 +63,7 @@ func newNode() *corev1.Node {
 }
 
 func standardMocks(m *mocks.API) {
-	m.On("GetBareMetalDevice", int32(14730)).Return(
+	m.On("GetBareMetalDevice", mock.Anything, int32(14730)).Return(
 		&hv.BareMetalDevice{
 			Hostname:                 "",
 			PrimaryIp:                "66.165.243.74",
@@ -84,7 +85,7 @@ func standardMocks(m *mocks.API) {
 		},
 		nil)
 
-	m.On("GetBareMetalDevice", int32(9999999)).Return(
+	m.On("GetBareMetalDevice", mock.Anything, int32(9999999)).Return(
 		nil, client.ErrNoSuchDevice)
 }
 func Test_InstanceExists(t *testing.T) {
