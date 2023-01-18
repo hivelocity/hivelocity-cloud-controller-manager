@@ -93,23 +93,23 @@ func Test_InstanceExists(t *testing.T) {
 	ctx := context.Background()
 	standardMocks(m)
 	tests := []struct {
-		providerId string
-		wantBool bool
+		providerId    int64
+		wantBool      bool
 		wantErrString string
 	}{
-		{fmt.Sprintf("hivelocity://%d", mockDeviceId), true, ""},
-		{"hivelocity://9999999", false, ""},
-		{"hivelocity://9999999999999999999999999999", false, "GetHivelocityDeviceIdFromNode(node) failed: failed to convert node.Spec.ProviderID \"hivelocity://9999999999999999999999999999\" to int32"},
+		{int64(mockDeviceId), true, ""},
+		{9999999, false, ""},
+		{999999999999999999, false, "GetHivelocityDeviceIdFromNode(node) failed: failed to convert node.Spec.ProviderID \"hivelocity://999999999999999999\" to int32"},
 	}
 	for _, row := range tests {
-		node.Spec.ProviderID = row.providerId
+		node.Spec.ProviderID = fmt.Sprintf("hivelocity://%d", row.providerId)
 		gotBool, gotErr := i2.InstanceExists(ctx, node)
 		require.Equal(t, row.wantBool, gotBool, row.providerId)
-		if row.wantErrString != ""{
+		if row.wantErrString == "" {
+			require.NoError(t, gotErr)
+		} else {
 			require.Error(t, gotErr)
 			require.Equal(t, row.wantErrString, gotErr.Error())
-		} else {
-			require.NoError(t, gotErr)
 		}
 	}
 }
@@ -119,14 +119,25 @@ func Test_InstanceShutdown(t *testing.T) {
 	standardMocks(m)
 	node := newNode()
 	ctx := context.Background()
-	isDown, err := i2.InstanceShutdown(ctx, node)
-	require.False(t, isDown)
-	require.NoError(t, err)
-
-	node.Spec.ProviderID = "hivelocity://9999999"
-	_, err = i2.InstanceShutdown(ctx, node)
-	require.Error(t, err)
-	require.Equal(t, "i2.API.GetBareMetalDeviceIdResource(deviceId) failed: no such device", err.Error())
+	tests := []struct {
+		providerId    int
+		wantBool      bool
+		wantErrString string
+	}{
+		{mockDeviceId, false, ""},
+		{9999999, false, "i2.API.GetBareMetalDeviceIdResource(deviceId) failed: no such device"},
+	}
+	for _, row := range tests {
+		node.Spec.ProviderID = fmt.Sprintf("hivelocity://%d", row.providerId)
+		gotBool, gotErr := i2.InstanceShutdown(ctx, node)
+		if row.wantErrString == "" {
+			require.NoError(t, gotErr)
+		} else {
+			require.Error(t, gotErr)
+			require.Equal(t, row.wantErrString, gotErr.Error())
+		}
+		require.Equal(t, row.wantBool, gotBool)
+	}
 }
 
 func Test_InstanceMetadata(t *testing.T) {
@@ -134,24 +145,34 @@ func Test_InstanceMetadata(t *testing.T) {
 	node := newNode()
 	ctx := context.Background()
 	standardMocks(m)
-	metaData, err := i2.InstanceMetadata(ctx, node)
-	require.NoError(t, err)
-	require.Equal(t, &cloudprovider.InstanceMetadata{
-		ProviderID: "14730",
-		NodeAddresses: []corev1.NodeAddress{
-			{
-				Type:    corev1.NodeAddressType("ExternalIP"),
-				Address: "66.165.243.74",
+	tests := []struct {
+		providerId    int
+		wantMetaData  *cloudprovider.InstanceMetadata
+		wantErrString string
+	}{
+		{mockDeviceId, &cloudprovider.InstanceMetadata{
+			ProviderID: "14730",
+			NodeAddresses: []corev1.NodeAddress{
+				{
+					Type:    corev1.NodeAddressType("ExternalIP"),
+					Address: "66.165.243.74",
+				},
 			},
-		},
-		Zone:   "LAX2",
-		Region: "LAX2",
-		InstanceType: "bare-metal-x",
-	}, metaData)
-
-	node.Spec.ProviderID = "hivelocity://9999999"
-	metaData, err = i2.InstanceMetadata(ctx, node)
-	require.Error(t, err)
-	require.Equal(t, "i2.API.GetBareMetalDeviceIdResource(deviceId) failed: no such device", err.Error())
-	require.Nil(t, metaData)
+			Zone:         "LAX2",
+			Region:       "LAX2",
+			InstanceType: "bare-metal-x",
+		}, ""},
+		{9999999, nil, "i2.API.GetBareMetalDeviceIdResource(deviceId) failed: no such device"},
+	}
+	for _, row := range tests {
+		node.Spec.ProviderID = fmt.Sprintf("hivelocity://%d", row.providerId)
+		gotMetaData, gotErr := i2.InstanceMetadata(ctx, node)
+		if row.wantErrString == "" {
+			require.NoError(t, gotErr)
+		} else {
+			require.Error(t, gotErr)
+			require.Equal(t, row.wantErrString, gotErr.Error())
+		}
+		require.Equal(t, row.wantMetaData, gotMetaData)
+	}
 }
