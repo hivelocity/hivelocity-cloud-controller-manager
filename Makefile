@@ -196,7 +196,7 @@ vet: ## Run go vet against code.
 
 .PHONY: generate-mocks
 generate-mocks: mockery
-	mockery -r --name=API
+	cd client; mockery --name=API
 
 .PHONY: test
 test:

@@ -23,7 +23,7 @@ import (
 
 	hv "github.com/hivelocity/hivelocity-client-go/client"
 	"github.com/hivelocity/hivelocity-cloud-controller-manager/client"
-	"github.com/hivelocity/hivelocity-cloud-controller-manager/mocks"
+	"github.com/hivelocity/hivelocity-cloud-controller-manager/client/mocks"
 	"github.com/stretchr/testify/mock"
 	"github.com/stretchr/testify/require"
 	corev1 "k8s.io/api/core/v1"
