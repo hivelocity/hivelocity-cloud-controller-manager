@@ -62,7 +62,7 @@ func newNode() *corev1.Node {
 }
 
 func standardMocks(m *mocks.API) {
-	m.On("GetBareMetalDeviceIdResource", int32(14730)).Return(
+	m.On("GetBareMetalDevice", int32(14730)).Return(
 		&hv.BareMetalDevice{
 			Hostname:                 "",
 			PrimaryIp:                "66.165.243.74",
@@ -84,7 +84,7 @@ func standardMocks(m *mocks.API) {
 		},
 		nil)
 
-	m.On("GetBareMetalDeviceIdResource", int32(9999999)).Return(
+	m.On("GetBareMetalDevice", int32(9999999)).Return(
 		nil, client.ErrNoSuchDevice)
 }
 func Test_InstanceExists(t *testing.T) {

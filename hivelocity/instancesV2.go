@@ -56,7 +56,7 @@ func (i2 *HVInstancesV2) InstanceExists(ctx context.Context, node *corev1.Node) 
 	if err != nil {
 		return false, fmt.Errorf("GetHivelocityDeviceIdFromNode(node) failed: %w", err)
 	}
-	_, err = i2.API.GetBareMetalDeviceIdResource(deviceId)
+	_, err = i2.API.GetBareMetalDevice(deviceId)
 	if err == client.ErrNoSuchDevice {
 		return false, nil
 	}
@@ -73,7 +73,7 @@ func (i2 *HVInstancesV2) InstanceShutdown(ctx context.Context, node *corev1.Node
 	if err != nil {
 		return false, fmt.Errorf("GetHivelocityDeviceIdFromNode(node) failed: %w", err)
 	}
-	device, err := i2.API.GetBareMetalDeviceIdResource(deviceId)
+	device, err := i2.API.GetBareMetalDevice(deviceId)
 	if err != nil {
 		return false, fmt.Errorf("i2.API.GetBareMetalDeviceIdResource(deviceId) failed: %w", err)
 	}
@@ -92,7 +92,7 @@ func (i2 *HVInstancesV2) InstanceMetadata(ctx context.Context, node *corev1.Node
 	if err != nil {
 		return nil, fmt.Errorf("GetHivelocityDeviceIdFromNode(node) failed: %w", err)
 	}
-	device, err := i2.API.GetBareMetalDeviceIdResource(deviceId)
+	device, err := i2.API.GetBareMetalDevice(deviceId)
 	if err != nil {
 		return nil, fmt.Errorf("i2.API.GetBareMetalDeviceIdResource(deviceId) failed: %w", err)
 	}

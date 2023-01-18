@@ -12,8 +12,8 @@ type API struct {
 	mock.Mock
 }
 
-// GetBareMetalDeviceIdResource provides a mock function with given fields: deviceId
-func (_m *API) GetBareMetalDeviceIdResource(deviceId int32) (*swagger.BareMetalDevice, error) {
+// GetBareMetalDevice provides a mock function with given fields: deviceId
+func (_m *API) GetBareMetalDevice(deviceId int32) (*swagger.BareMetalDevice, error) {
 	ret := _m.Called(deviceId)
 
 	var r0 *swagger.BareMetalDevice
