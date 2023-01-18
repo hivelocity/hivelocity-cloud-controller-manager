@@ -97,9 +97,21 @@ func Test_InstanceExists(t *testing.T) {
 		wantBool      bool
 		wantErrString string
 	}{
-		{int64(mockDeviceId), true, ""},
-		{9999999, false, ""},
-		{999999999999999999, false, "GetHivelocityDeviceIdFromNode(node) failed: failed to convert node.Spec.ProviderID \"hivelocity://999999999999999999\" to int32"},
+		{
+			providerId:    int64(mockDeviceId),
+			wantBool:      true,
+			wantErrString: "",
+		},
+		{
+			providerId:    9999999,
+			wantBool:      false,
+			wantErrString: "",
+		},
+		{
+			providerId:    999999999999999999,
+			wantBool:      false,
+			wantErrString: "GetHivelocityDeviceIdFromNode(node) failed: failed to convert node.Spec.ProviderID \"hivelocity://999999999999999999\" to int32",
+		},
 	}
 	for _, row := range tests {
 		node.Spec.ProviderID = fmt.Sprintf("hivelocity://%d", row.providerId)
@@ -124,8 +136,16 @@ func Test_InstanceShutdown(t *testing.T) {
 		wantBool      bool
 		wantErrString string
 	}{
-		{mockDeviceId, false, ""},
-		{9999999, false, "i2.API.GetBareMetalDeviceIdResource(deviceId) failed: no such device"},
+		{
+			providerId:    mockDeviceId,
+			wantBool:      false,
+			wantErrString: "",
+		},
+		{
+			providerId:    9999999,
+			wantBool:      false,
+			wantErrString: "i2.API.GetBareMetalDeviceIdResource(deviceId) failed: no such device",
+		},
 	}
 	for _, row := range tests {
 		node.Spec.ProviderID = fmt.Sprintf("hivelocity://%d", row.providerId)
@@ -150,19 +170,27 @@ func Test_InstanceMetadata(t *testing.T) {
 		wantMetaData  *cloudprovider.InstanceMetadata
 		wantErrString string
 	}{
-		{mockDeviceId, &cloudprovider.InstanceMetadata{
-			ProviderID: "14730",
-			NodeAddresses: []corev1.NodeAddress{
-				{
-					Type:    corev1.NodeAddressType("ExternalIP"),
-					Address: "66.165.243.74",
+		{
+			providerId: mockDeviceId,
+			wantMetaData: &cloudprovider.InstanceMetadata{
+				ProviderID: "14730",
+				NodeAddresses: []corev1.NodeAddress{
+					{
+						Type:    corev1.NodeAddressType("ExternalIP"),
+						Address: "66.165.243.74",
+					},
 				},
+				Zone:         "LAX2",
+				Region:       "LAX2",
+				InstanceType: "bare-metal-x",
 			},
-			Zone:         "LAX2",
-			Region:       "LAX2",
-			InstanceType: "bare-metal-x",
-		}, ""},
-		{9999999, nil, "i2.API.GetBareMetalDeviceIdResource(deviceId) failed: no such device"},
+			wantErrString: "",
+		},
+		{
+			providerId:    9999999,
+			wantMetaData:  nil,
+			wantErrString: "i2.API.GetBareMetalDeviceIdResource(deviceId) failed: no such device",
+		},
 	}
 	for _, row := range tests {
 		node.Spec.ProviderID = fmt.Sprintf("hivelocity://%d", row.providerId)
