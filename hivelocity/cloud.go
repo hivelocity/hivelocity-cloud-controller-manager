@@ -42,12 +42,9 @@ type cloud struct {
 var _ cloudprovider.Interface = (*cloud)(nil)
 
 func newCloud(config io.Reader) (cloudprovider.Interface, error) {
-	apiKey, ok := os.LookupEnv(hivelocityApiKeyENVVar)
-	if !ok {
-		return nil, fmt.Errorf("environment variable %q is required", hivelocityApiKeyENVVar)
-	}
+	apiKey := os.Getenv(hivelocityApiKeyENVVar)
 	if apiKey == "" {
-		return nil, fmt.Errorf("environment variable %q most not be empty", hivelocityApiKeyENVVar)
+		return nil, fmt.Errorf("environment variable %q is missing or empty", hivelocityApiKeyENVVar)
 	}
 
 	apiClientConfig := hv.NewConfiguration()
