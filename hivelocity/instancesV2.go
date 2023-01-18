@@ -26,7 +26,6 @@ import (
 	corev1 "k8s.io/api/core/v1"
 	"k8s.io/apimachinery/pkg/util/validation"
 	cloudprovider "k8s.io/cloud-provider"
-	"k8s.io/klog/v2"
 )
 
 // HVInstancesV2 implements cloudprovider.InstanceV2
@@ -103,9 +102,16 @@ func (i2 *HVInstancesV2) InstanceMetadata(ctx context.Context, node *corev1.Node
 		Address: device.PrimaryIp,
 	}
 
+	// HV tag. Example "instance-type=abc".
+	instanceType, err := getInstanceTypeFromTags(device.Tags, deviceId)
+	if err != nil {
+		return nil, fmt.Errorf("getInstanceTypeFromTags() failed. deviceId=%q. %w", deviceId,
+			err)
+	}
+
 	var metaData = cloudprovider.InstanceMetadata{
 		ProviderID:    strconv.Itoa(int(deviceId)),
-		InstanceType:  getInstanceTypeFromTags(device.Tags, deviceId), // HV tag. Example "instance-type=abc".
+		InstanceType:  instanceType,
 		NodeAddresses: []corev1.NodeAddress{addr},
 		Zone:          device.LocationName, // for example LAX1
 		Region:        device.LocationName, // for example LAX1
@@ -113,9 +119,9 @@ func (i2 *HVInstancesV2) InstanceMetadata(ctx context.Context, node *corev1.Node
 	return &metaData, nil
 }
 
-func getInstanceTypeFromTags(tags []string, deviceId int32) string {
+func getInstanceTypeFromTags(tags []string, deviceId int32) (string, error) {
 	prefix := "instance-type="
-	var instanceTypes []string;
+	var instanceTypes []string
 	for _, tag := range tags {
 		if !strings.HasPrefix(tag, prefix) {
 			continue
@@ -124,20 +130,17 @@ func getInstanceTypeFromTags(tags []string, deviceId int32) string {
 		instanceTypes = append(instanceTypes, instanceType)
 	}
 	if len(instanceTypes) == 0 {
-		klog.Errorf("No instance-type tags found on deviceId=%d", deviceId)
-		return ""
+		return "", fmt.Errorf("No instance-type tags found on deviceId=%d", deviceId)
 	}
 	if len(instanceTypes) > 1 {
-		klog.Errorf("More than one instance-type tags found on deviceId=%d: %v", deviceId, 
+		return "", fmt.Errorf("More than one instance-type tags found on deviceId=%d: %v", deviceId,
 			instanceTypes)
-		return ""
 	}
 	instanceType := instanceTypes[0]
 
 	if errs := validation.IsValidLabelValue(instanceType); len(errs) != 0 {
-		klog.Errorf("deviceID=%d has invalid tag %q %s", deviceId, instanceType,
+		return "", fmt.Errorf("deviceID=%d has invalid tag %q %s", deviceId, instanceType,
 			strings.Join(errs, "; "))
-		return ""
 	}
-	return instanceType
+	return instanceType, nil
 }

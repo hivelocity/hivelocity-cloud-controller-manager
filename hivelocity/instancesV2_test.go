@@ -18,12 +18,14 @@ package hivelocity
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"testing"
 
 	hv "github.com/hivelocity/hivelocity-client-go/client"
 	"github.com/hivelocity/hivelocity-cloud-controller-manager/client"
 	"github.com/hivelocity/hivelocity-cloud-controller-manager/mocks"
+	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 	corev1 "k8s.io/api/core/v1"
 	cloudprovider "k8s.io/cloud-provider"
@@ -152,17 +154,18 @@ func Test_getInstanceTypeFromTags(t *testing.T) {
 		name string
 		tags []string
 		want string
+		err  error
 	}{
-		{"empty slice returns empty string", []string{}, ""},
-		{"invalid label value will be skipped", []string{"instance-type=&"}, ""},
-		{"valid label value will be used", []string{"instance-type=abc"}, "abc"},
-		{"two labels", []string{"instance-type=abc", "instance-type=abc"}, ""},
+		{"empty slice returns empty string", []string{}, "", errors.New(errors.New("No instance-type tags found on deviceId=1").Error())},
+		{"invalid label value will be skipped", []string{"instance-type=&"}, "", errors.New(errors.New("deviceID=1 has invalid tag \"&\" a valid label must be an empty string or consist of alphanumeric characters, '-', '_' or '.', and must start and end with an alphanumeric character (e.g. 'MyValue',  or 'my_value',  or '12345', regex used for validation is '(([A-Za-z0-9][-A-Za-z0-9_.]*)?[A-Za-z0-9])?')").Error())},
+		{"valid label value will be used", []string{"instance-type=abc"}, "abc", nil},
+		{"two labels", []string{"instance-type=abc", "instance-type=abc"}, "", errors.New(errors.New("More than one instance-type tags found on deviceId=1: [abc abc]").Error())},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			if got := getInstanceTypeFromTags(tt.tags, 1); got != tt.want {
-				t.Errorf("getInstanceTypeFromTags() = %v, want %v", got, tt.want)
-			}
+			got, err := getInstanceTypeFromTags(tt.tags, 1)
+			assert.Equal(t, tt.want, got, fmt.Sprintf("tags: %v", tt.tags))
+			assert.Equal(t, tt.err, err, fmt.Sprintf("tags: %v", tt.tags))
 		})
 	}
 }
