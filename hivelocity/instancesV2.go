@@ -115,17 +115,29 @@ func (i2 *HVInstancesV2) InstanceMetadata(ctx context.Context, node *corev1.Node
 
 func getInstanceTypeFromTags(tags []string, deviceId int32) string {
 	prefix := "instance-type="
+	var instanceTypes []string;
 	for _, tag := range tags {
 		if !strings.HasPrefix(tag, prefix) {
 			continue
 		}
 		instanceType := strings.TrimSpace(tag[len(prefix):])
-		if errs := validation.IsValidLabelValue(instanceType); len(errs) != 0 {
-			klog.Errorf("deviceID=%d has invalid tag %q %s", deviceId, tag,
-				strings.Join(errs, "; "))
-			continue
-		}
-		return instanceType
+		instanceTypes = append(instanceTypes, instanceType)
 	}
-	return ""
+	if len(instanceTypes) == 0 {
+		klog.Errorf("No instance-type tags found on deviceId=%d", deviceId)
+		return ""
+	}
+	if len(instanceTypes) > 1 {
+		klog.Errorf("More than one instance-type tags found on deviceId=%d: %v", deviceId, 
+			instanceTypes)
+		return ""
+	}
+	instanceType := instanceTypes[0]
+
+	if errs := validation.IsValidLabelValue(instanceType); len(errs) != 0 {
+		klog.Errorf("deviceID=%d has invalid tag %q %s", deviceId, instanceType,
+			strings.Join(errs, "; "))
+		return ""
+	}
+	return instanceType
 }

@@ -156,6 +156,7 @@ func Test_getInstanceTypeFromTags(t *testing.T) {
 		{"empty slice returns empty string", []string{}, ""},
 		{"invalid label value will be skipped", []string{"instance-type=&"}, ""},
 		{"valid label value will be used", []string{"instance-type=abc"}, "abc"},
+		{"two labels", []string{"instance-type=abc", "instance-type=abc"}, ""},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
