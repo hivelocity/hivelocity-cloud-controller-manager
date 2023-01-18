@@ -31,18 +31,35 @@ import (
 )
 
 func Test_GetHivelocityDeviceIdFromNode(t *testing.T) {
-	// Empty ProviderID should fail
-	i, err := GetHivelocityDeviceIdFromNode(&corev1.Node{})
-	require.Equal(t, int32(0), i)
-	require.Error(t, err)
-
-	// Correct ProviderID should get parsed
-	i, err = GetHivelocityDeviceIdFromNode(&corev1.Node{
-		Spec: corev1.NodeSpec{
-			ProviderID: "hivelocity://12345",
-		}})
-	require.Equal(t, int32(12345), i)
-	require.NoError(t, err)
+	var tests = []struct {
+		providerId     string
+		wantProviderId int32
+		wantErrString  string
+	}{
+		{
+			providerId:     "",
+			wantProviderId: 0,
+			wantErrString:  "xxmissing prefix \"hivelocity://\" in node.Spec.ProviderID \"\"",
+		},
+		{
+			providerId:     "hivelocity://12345",
+			wantProviderId: 12345,
+			wantErrString:  "",
+		},
+	}
+	var node = &corev1.Node{}
+	for _, row := range tests {
+		node.Spec.ProviderID = row.providerId
+		gotProviderId, gotErr := GetHivelocityDeviceIdFromNode(node)
+		msg := fmt.Sprintf("Input: providerId=%q", row.providerId)
+		if row.wantErrString == "" {
+			require.NoError(t, gotErr, msg)
+		} else {
+			require.Error(t, gotErr, msg)
+			require.Equal(t, row.wantErrString, gotErr.Error(), msg)
+		}
+		require.Equal(t, row.wantProviderId, gotProviderId, msg)
+	}
 }
 
 var mockDeviceId int = 14730
