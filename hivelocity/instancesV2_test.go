@@ -92,19 +92,26 @@ func Test_InstanceExists(t *testing.T) {
 	node := newNode()
 	ctx := context.Background()
 	standardMocks(m)
-	myBool, err := i2.InstanceExists(ctx, node)
-	require.NoError(t, err)
-	require.Equal(t, true, myBool)
-
-	node.Spec.ProviderID = "hivelocity://9999999"
-	myBool, err = i2.InstanceExists(ctx, node)
-	require.Equal(t, false, myBool)
-	require.NoError(t, err)
-
-	node.Spec.ProviderID = "hivelocity://9999999999999999999999999999"
-	myBool, err = i2.InstanceExists(ctx, node)
-	require.Equal(t, false, myBool)
-	require.Equal(t, "GetHivelocityDeviceIdFromNode(node) failed: failed to convert node.Spec.ProviderID \"hivelocity://9999999999999999999999999999\" to int32", err.Error())
+	tests := []struct {
+		providerId string
+		wantBool bool
+		wantErrString string
+	}{
+		{fmt.Sprintf("hivelocity://%d", mockDeviceId), true, ""},
+		{"hivelocity://9999999", false, ""},
+		{"hivelocity://9999999999999999999999999999", false, "GetHivelocityDeviceIdFromNode(node) failed: failed to convert node.Spec.ProviderID \"hivelocity://9999999999999999999999999999\" to int32"},
+	}
+	for _, row := range tests {
+		node.Spec.ProviderID = row.providerId
+		gotBool, gotErr := i2.InstanceExists(ctx, node)
+		require.Equal(t, row.wantBool, gotBool, row.providerId)
+		if row.wantErrString != ""{
+			require.Error(t, gotErr)
+			require.Equal(t, row.wantErrString, gotErr.Error())
+		} else {
+			require.NoError(t, gotErr)
+		}
+	}
 }
 
 func Test_InstanceShutdown(t *testing.T) {
