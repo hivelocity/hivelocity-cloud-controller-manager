@@ -128,19 +128,20 @@ func Test_InstanceExists(t *testing.T) {
 		{
 			providerId:    999999999999999999,
 			wantBool:      false,
-			wantErrString: "GetHivelocityDeviceIdFromNode(node) failed: failed to convert node.Spec.ProviderID \"hivelocity://999999999999999999\" to int32",
+			wantErrString: "GxetHivelocityDeviceIdFromNode(node) failed: failed to convert node.Spec.ProviderID \"hivelocity://999999999999999999\" to int32",
 		},
 	}
 	for _, row := range tests {
 		node.Spec.ProviderID = fmt.Sprintf("hivelocity://%d", row.providerId)
 		gotBool, gotErr := i2.InstanceExists(ctx, node)
-		require.Equal(t, row.wantBool, gotBool, row.providerId)
+		msg := fmt.Sprintf("Input: providerId=%+v", row.providerId)
 		if row.wantErrString == "" {
-			require.NoError(t, gotErr)
+			require.NoError(t, gotErr, msg)
 		} else {
-			require.Error(t, gotErr)
-			require.Equal(t, row.wantErrString, gotErr.Error())
+			require.Error(t, gotErr, msg)
+			require.Equal(t, row.wantErrString, gotErr.Error(), msg)
 		}
+		require.Equal(t, row.wantBool, gotBool, row.providerId, msg)
 	}
 }
 
@@ -168,13 +169,14 @@ func Test_InstanceShutdown(t *testing.T) {
 	for _, row := range tests {
 		node.Spec.ProviderID = fmt.Sprintf("hivelocity://%d", row.providerId)
 		gotBool, gotErr := i2.InstanceShutdown(ctx, node)
+		msg := fmt.Sprintf("Input: providerId=%+v", row.providerId)
 		if row.wantErrString == "" {
-			require.NoError(t, gotErr)
+			require.NoError(t, gotErr, msg)
 		} else {
-			require.Error(t, gotErr)
-			require.Equal(t, row.wantErrString, gotErr.Error())
+			require.Error(t, gotErr, msg)
+			require.Equal(t, row.wantErrString, gotErr.Error(), msg)
 		}
-		require.Equal(t, row.wantBool, gotBool)
+		require.Equal(t, row.wantBool, gotBool, msg)
 	}
 }
 
@@ -213,12 +215,13 @@ func Test_InstanceMetadata(t *testing.T) {
 	for _, row := range tests {
 		node.Spec.ProviderID = fmt.Sprintf("hivelocity://%d", row.providerId)
 		gotMetaData, gotErr := i2.InstanceMetadata(ctx, node)
+		msg := fmt.Sprintf("Input: providerId=%+v", row.providerId)
 		if row.wantErrString == "" {
-			require.NoError(t, gotErr)
+			require.NoError(t, gotErr, msg)
 		} else {
-			require.Error(t, gotErr)
-			require.Equal(t, row.wantErrString, gotErr.Error())
+			require.Error(t, gotErr, msg)
+			require.Equal(t, row.wantErrString, gotErr.Error(), msg)
 		}
-		require.Equal(t, row.wantMetaData, gotMetaData)
+		require.Equal(t, row.wantMetaData, gotMetaData, msg)
 	}
 }
