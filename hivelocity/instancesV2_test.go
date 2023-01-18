@@ -39,7 +39,7 @@ func Test_GetHivelocityDeviceIdFromNode(t *testing.T) {
 		{
 			providerId:    "",
 			wantDeviceId:  0,
-			wantErrString: "xxmissing prefix \"hivelocity://\" in node.Spec.ProviderID \"\"",
+			wantErrString: "missing prefix \"hivelocity://\" in node.Spec.ProviderID \"\"",
 		},
 		{
 			providerId:    "hivelocity://12345",
@@ -64,11 +64,13 @@ func Test_GetHivelocityDeviceIdFromNode(t *testing.T) {
 
 var mockDeviceId int = 14730
 
-func newHVInstanceV2(t *testing.T) (*HVInstancesV2, *mocks.API) {
-	api := mocks.NewAPI(t)
+func newTestData(m *mocks.API) (*HVInstancesV2, *corev1.Node, context.Context) {
+	node := newNode()
+	ctx := context.Background()
+	standardMocks(m)
 	return &HVInstancesV2{
-		API: api,
-	}, api
+		API: m,
+	}, node, ctx
 }
 
 func newNode() *corev1.Node {
@@ -106,10 +108,9 @@ func standardMocks(m *mocks.API) {
 		nil, client.ErrNoSuchDevice)
 }
 func Test_InstanceExists(t *testing.T) {
-	i2, m := newHVInstanceV2(t)
-	node := newNode()
-	ctx := context.Background()
-	standardMocks(m)
+	m := mocks.NewAPI(t)
+	i2, node, ctx := newTestData(m)
+
 	tests := []struct {
 		providerId    int64
 		wantBool      bool
@@ -128,7 +129,7 @@ func Test_InstanceExists(t *testing.T) {
 		{
 			providerId:    999999999999999999,
 			wantBool:      false,
-			wantErrString: "GxetHivelocityDeviceIdFromNode(node) failed: failed to convert node.Spec.ProviderID \"hivelocity://999999999999999999\" to int32",
+			wantErrString: "GetHivelocityDeviceIdFromNode(node) failed: failed to convert node.Spec.ProviderID \"hivelocity://999999999999999999\" to int32",
 		},
 	}
 	for _, tt := range tests {
@@ -146,10 +147,8 @@ func Test_InstanceExists(t *testing.T) {
 }
 
 func Test_InstanceShutdown(t *testing.T) {
-	i2, m := newHVInstanceV2(t)
-	standardMocks(m)
-	node := newNode()
-	ctx := context.Background()
+	m := mocks.NewAPI(t)
+	i2, node, ctx := newTestData(m)
 	tests := []struct {
 		providerId    int
 		wantBool      bool
@@ -181,10 +180,8 @@ func Test_InstanceShutdown(t *testing.T) {
 }
 
 func Test_InstanceMetadata(t *testing.T) {
-	i2, m := newHVInstanceV2(t)
-	node := newNode()
-	ctx := context.Background()
-	standardMocks(m)
+	m := mocks.NewAPI(t)
+	i2, node, ctx := newTestData(m)
 	tests := []struct {
 		providerId    int
 		wantMetaData  *cloudprovider.InstanceMetadata
