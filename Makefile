@@ -33,6 +33,26 @@ TOOLS_DIR := hack/tools
 TOOLS_BIN_DIR := $(TOOLS_DIR)/$(BIN_DIR)
 export PATH := $(abspath $(TOOLS_BIN_DIR)):$(PATH)
 
+#
+# Tooling Binaries.
+#
+GOLANGCI_LINT := $(abspath $(TOOLS_BIN_DIR)/golangci-lint)
+
+#
+# Container related variables. Releases should modify and double check these vars.
+#
+REGISTRY ?= ghcr.io/hivelocity
+PROD_REGISTRY := ghcr.io/hivelocity
+IMAGE_NAME ?= hivelocity-cloud-controller-manager-staging
+CONTROLLER_IMG ?= $(REGISTRY)/$(IMAGE_NAME)
+TAG ?= dev
+ARCH ?= amd64
+# Modify these according to your needs
+PLATFORMS  = linux/amd64,linux/arm64
+# This option is for running docker manifest command
+export DOCKER_CLI_EXPERIMENTAL := enabled
+
+
 all: help
 
 ##@ General
@@ -59,6 +79,16 @@ $(GOLANGCI_LINT): .github/workflows/pr-golangci-lint.yml # Download golanci-lint
 		-b $(TOOLS_DIR)/$(BIN_DIR) \
 		$(shell cat .github/workflows/pr-golangci-lint.yml | grep "\<version:\>" | sed 's/.*version: //')
 
+
+mockery:
+	go install github.com/vektra/mockery/v2@v2.16.0
+
+##@ Generate / Manifests
+
+.PHONY: generate
+generate: ## Run all generate-manifests, generate-go-deepcopyand generate-go-conversions targets
+	$(MAKE) generate-mocks
+
 .PHONY: ensure-boilerplate
 ensure-boilerplate: ## Ensures that a boilerplate exists in each file by adding missing boilerplates
 	set -x
@@ -79,9 +109,6 @@ lint: $(GOLANGCI_LINT) ## Lint Golang codebase
 lint-fix: $(GOLANGCI_LINT) ## Lint the Go codebase and run auto-fixers if supported by the linter.
 	GOLANGCI_LINT_EXTRA_ARGS=--fix $(MAKE) lint
 
-yamllint: ## Lints YAML Files
-	yamllint -c .github/linters/yaml-lint.yaml --strict .
-
 ALL_VERIFY_CHECKS = boilerplate shellcheck modules gen
 
 .PHONY: verify
@@ -98,6 +125,13 @@ verify-modules: modules  ## Verify go modules are up to date
 	@if (find . -name 'go.mod' | xargs -n1 grep -q -i 'k8s.io/client-go.*+incompatible'); then \
 		find . -name "go.mod" -exec grep -i 'k8s.io/client-go.*+incompatible' {} \; -print; \
 		echo "go module contains an incompatible client-go version"; exit 1; \
+	fi
+
+.PHONY: verify-gen
+verify-gen: generate  ## Verfiy go generated files are up to date
+	@if !(git diff --quiet HEAD); then \
+		git diff; \
+		echo "generated files are out of date, run make generate"; exit 1; \
 	fi
 
 .PHONY: verify-boilerplate
@@ -119,11 +153,6 @@ clean-bin: ## Remove all generated helper binaries
 	rm -rf $(BIN_DIR)
 	rm -rf $(TOOLS_BIN_DIR)
 
-.PHONY: clean-docker-all
-clean-docker-all: ## Erases all container and images
-	./hack/erase-docker-all.sh
-
-
 ##@ Build
 
 build: generate fmt vet ## Build manager binary.
@@ -136,33 +165,26 @@ run: generate fmt vet ## Run a controller from your host.
 ## Docker
 ## --------------------------------------
 
-# Create multi-platform docker image. If you have native systems around, using
-# them will be much more efficient at build time. See e.g.
-BUILDXDETECT = ${HOME}/.docker/cli-plugins/docker-buildx
+
 # Just one of the many files created
 QEMUDETECT = /proc/sys/fs/binfmt_misc/qemu-m68k
 
-docker-multiarch: qemu buildx docker-multiarch-builder
+docker-multiarch: qemu docker-multiarch-builder
 	docker buildx build --builder docker-multiarch --pull --push \
 		--platform ${PLATFORMS} \
 		-t $(CONTROLLER_IMG):$(TAG) .
 
-.PHONY: qemu buildx docker-multiarch-builder
+.PHONY: qemu docker-multiarch-builder
 
 qemu:	${QEMUDETECT}
 ${QEMUDETECT}:
 	docker run --rm --privileged multiarch/qemu-user-static --reset -p yes
 
-buildx: ${BUILDXDETECT}
-${BUILDXDETECT}:
-	@echo
-# Output of `uname -m` is too different 
-	@echo "*** 'docker buildx' missing. Install binary for this machine's architecture"
-	@echo "*** from https://github.com/docker/buildx/releases/latest"
-	@echo "*** to ~/.docker/cli-plugins/docker-buildx"
-	@echo
-	@exit 1
-
+docker-multiarch-builder: qemu
+	if ! docker buildx ls | grep -w docker-multiarch > /dev/null; then \
+		docker buildx create --name docker-multiarch && \
+		docker buildx inspect --builder docker-multiarch --bootstrap; \
+	fi
 
 ##@ Development
 
@@ -172,6 +194,10 @@ fmt: ## Run go fmt against code.
 vet: ## Run go vet against code.
 	go vet ./...
 
+.PHONY: generate-mocks
+generate-mocks: mockery
+	cd client; mockery --name=Client
 
-
-
+.PHONY: test
+test:
+	go test ./...
