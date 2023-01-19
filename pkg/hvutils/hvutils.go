@@ -25,19 +25,20 @@ import (
 
 func GetInstanceTypeFromTags(tags []string, deviceId int32) (string, error) {
 	prefix := "instance-type="
-	var instanceTypes []string
+	instanceTypes := make([]string, 0, 1)
 	for _, tag := range tags {
 		if !strings.HasPrefix(tag, prefix) {
 			continue
 		}
-		instanceType := strings.TrimSpace(tag[len(prefix):])
+
+		instanceType := strings.TrimSpace(strings.TrimPrefix(tag, prefix))
 		instanceTypes = append(instanceTypes, instanceType)
 	}
 	if len(instanceTypes) == 0 {
-		return "", fmt.Errorf("No instance-type tags found on deviceId=%d", deviceId)
+		return "", fmt.Errorf("No instance-type tag found on deviceId=%d", deviceId)
 	}
 	if len(instanceTypes) > 1 {
-		return "", fmt.Errorf("More than one instance-type tags found on deviceId=%d: %v", deviceId,
+		return "", fmt.Errorf("More than one instance-type tag found on deviceId=%d: %v", deviceId,
 			instanceTypes)
 	}
 	instanceType := instanceTypes[0]

@@ -1,6 +1,6 @@
 # Developing Hivelocity Cloud Controller
 
-Developing our provider is quite easy. First, you need to install some base requirements. Second, you need to follow the quickstart documents to set up everything related to Hivelocity.
+Developing our cloud controller manager is quite easy. First, you need to install some base requirements. Second, you need to follow the quickstart documents to set up everything related to Hivelocity.
 
 ## Installation
 
@@ -16,16 +16,16 @@ Download the dependencies:
 > go mod tidy
 ```
 
-Run the unittests:
+Run the unit tests:
 ```
 > make test
 ```
 
-## Hivelocity API Key.
+## Hivelocity API key.
 
-You need an API Key to access the Hivelocity API.
+You need an API key to access the Hivelocity API.
 
-You find more docs about accessing Hivelocity with Go in the [Hivelocity Go Client](https://github.com/hivelocity/hivelocity-client-go)
+You find more docs about accessing Hivelocity with Go in the [Hivelocity Go Client](https://github.com/hivelocity/hivelocity-client-go).
 
 
 ## Submitting PRs and testing
