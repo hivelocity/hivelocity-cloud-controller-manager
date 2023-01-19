@@ -35,7 +35,7 @@ func Test_getInstanceTypeFromTags(t *testing.T) {
 			name: "empty slice returns empty string",
 			tags: []string{},
 			want: "",
-			err:  errors.New(errors.New("No instance-type tags found on deviceId=1").Error()),
+			err:  errors.New(errors.New("No instance-type tag found on deviceId=1").Error()),
 		},
 		{
 			name: "invalid label value will be skipped",
@@ -45,7 +45,7 @@ func Test_getInstanceTypeFromTags(t *testing.T) {
 		},
 		{
 			name: "valid label value will be used",
-			tags: []string{"instance-type=abc"},
+			tags: []string{"foo", "instance-type=abc", "bar", "key=value"},
 			want: "abc",
 			err:  nil,
 		},
@@ -53,7 +53,7 @@ func Test_getInstanceTypeFromTags(t *testing.T) {
 			name: "two labels",
 			tags: []string{"instance-type=abc", "instance-type=abc"},
 			want: "",
-			err:  errors.New(errors.New("More than one instance-type tags found on deviceId=1: [abc abc]").Error()),
+			err:  errors.New(errors.New("More than one instance-type tag found on deviceId=1: [abc abc]").Error()),
 		},
 	}
 	for _, tt := range tests {
