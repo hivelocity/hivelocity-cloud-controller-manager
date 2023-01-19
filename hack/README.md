@@ -1,4 +1,4 @@
-## Verify & Ensure boilerplate
+## Verify & Ensure Boilerplate
 
 - `verify-boilerplate.sh`:  
    Verifies that the boilerplate for various formats (go files, Makefile, etc.)

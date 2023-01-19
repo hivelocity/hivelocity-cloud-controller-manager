@@ -21,14 +21,14 @@ Run the unit tests:
 > make test
 ```
 
-## Hivelocity API key.
+## Hivelocity API Key.
 
 You need an API key to access the Hivelocity API.
 
 You find more docs about accessing Hivelocity with Go in the [Hivelocity Go Client](https://github.com/hivelocity/hivelocity-client-go).
 
 
-## Submitting PRs and testing
+## Submitting PRs and Testing
 
 Pull requests and issues are highly encouraged! For more information, please have a look in the [Contribution Guidelines](../../CONTRIBUTING.md)
 

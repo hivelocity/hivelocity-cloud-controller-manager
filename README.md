@@ -1,4 +1,4 @@
-# Hivelocity cloud controller manager
+# Hivelocity Cloud Controller Manager
 
 This code provides a [cloud controller manager](https://kubernetes.io/docs/tasks/administer-cluster/running-cloud-controller/) for
 the provider [hivelocity.net](https://www.hivelocity.net/).
