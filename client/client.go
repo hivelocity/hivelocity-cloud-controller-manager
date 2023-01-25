@@ -28,29 +28,29 @@ import (
 	hv "github.com/hivelocity/hivelocity-client-go/client"
 )
 
-// Client is a wrapper of hv.APIClient. In this way, mocking (for tests)
+// Interface is a wrapper of hv.APIClient. In this way, mocking (for tests)
 // is easier.
-type Client interface {
+type Interface interface {
 	GetBareMetalDevice(ctx context.Context, deviceID int32) (*hv.BareMetalDevice, error)
 }
 
-// realClient implements the Client interface.
-type realClient struct {
+// Client implements the Interface interface.
+type Client struct {
 	client *hv.APIClient
 }
 
-var _ Client = (*realClient)(nil)
+var _ Interface = (*Client)(nil)
 
 // NewClient creates a struct which implements the Client interface.
-func NewClient(client *hv.APIClient) Client { //nolint:ireturn // returns interface, since realClient is not exported.
-	return &realClient{client: client}
+func NewClient(client *hv.APIClient) *Client {
+	return &Client{client: client}
 }
 
 // ErrNoSuchDevice means that no device was found via the Hivelocity API.
 var ErrNoSuchDevice = errors.New("no such device")
 
 // GetBareMetalDevice returns the device fetched via the Hivelocity API.
-func (c *realClient) GetBareMetalDevice(ctx context.Context, deviceID int32) (*hv.BareMetalDevice, error) {
+func (c *Client) GetBareMetalDevice(ctx context.Context, deviceID int32) (*hv.BareMetalDevice, error) {
 	device, response, err := c.client.BareMetalDevicesApi.GetBareMetalDeviceIdResource(
 		ctx, deviceID, nil)
 	if err == nil {

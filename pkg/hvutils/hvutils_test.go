@@ -20,7 +20,7 @@ import (
 	"fmt"
 	"testing"
 
-	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
 )
 
 func Test_getInstanceTypeFromTags(t *testing.T) {
@@ -35,7 +35,7 @@ func Test_getInstanceTypeFromTags(t *testing.T) {
 			name: "empty slice returns empty string",
 			tags: []string{},
 			want: "",
-			err:  ErrMoreThanOneTagFound,
+			err:  ErrNoInstanceTypeFound,
 		},
 		{
 			name: "invalid label value will be skipped",
@@ -61,8 +61,12 @@ func Test_getInstanceTypeFromTags(t *testing.T) {
 		t.Run(tt.name, func(t *testing.T) {
 			t.Parallel()
 			got, err := GetInstanceTypeFromTags(tt.tags)
-			assert.Equal(t, tt.want, got, fmt.Sprintf("tags: %v", tt.tags))
-			assert.Equal(t, tt.err, err, fmt.Sprintf("tags: %v", tt.tags))
+			require.Equal(t, tt.want, got, fmt.Sprintf("tags: %v", tt.tags))
+			if tt.err != nil {
+				require.ErrorIsf(t, err, tt.err, "tags: %v", tt.tags)
+			} else {
+				require.Equal(t, tt.err, err, fmt.Sprintf("tags: %v", tt.tags))
+			}
 		})
 	}
 }

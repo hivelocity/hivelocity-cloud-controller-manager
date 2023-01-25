@@ -31,13 +31,13 @@ import (
 
 // HVInstancesV2 implements cloudprovider.InstanceV2.
 type HVInstancesV2 struct {
-	Client client.Client
+	Client client.Interface
 }
 
 var _ cloudprovider.InstancesV2 = &HVInstancesV2{}
 
 // NewHVInstanceV2 creates a new HVInstancesV2 struct.
-func NewHVInstanceV2(c client.Client) *HVInstancesV2 {
+func NewHVInstanceV2(c client.Interface) *HVInstancesV2 {
 	return &HVInstancesV2{Client: c}
 }
 
@@ -47,7 +47,7 @@ func NewHVInstanceV2(c client.Client) *HVInstancesV2 {
 func getHivelocityDeviceIDFromNode(node *corev1.Node) (int32, error) {
 	providerPrefix := providerName + "://"
 	if !strings.HasPrefix(node.Spec.ProviderID, providerPrefix) {
-		return 0, fmt.Errorf("%q: %w", node.Spec.ProviderID, errMissingProviderPrefix)
+		return 0, fmt.Errorf("ProviderID: %q: %w", node.Spec.ProviderID, errMissingProviderPrefix)
 	}
 	deviceID, err := strconv.ParseInt(node.Spec.ProviderID[len(providerPrefix):], 10, 32)
 	if err != nil {

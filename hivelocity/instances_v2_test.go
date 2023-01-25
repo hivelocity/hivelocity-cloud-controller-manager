@@ -40,7 +40,7 @@ func Test_GetHivelocityDeviceIDFromNode(t *testing.T) {
 		{
 			providerID:    "",
 			wantDeviceID:  0,
-			wantErrString: "missing prefix \"hivelocity://\" in node.Spec.ProviderID \"\"",
+			wantErrString: "ProviderID: \"\": missing prefix \"hivelocity\" in node.Spec.ProviderID",
 		},
 		{
 			providerID:    "hivelocity://12345",
@@ -125,8 +125,9 @@ func Test_InstanceExists(t *testing.T) {
 		{
 			providerID: 999999999999999999,
 			wantBool:   false,
-			wantErrString: "GetHivelocityDeviceIDFromNode(node) failed: " +
-				"failed to convert node.Spec.ProviderID \"hivelocity://999999999999999999\" to int32",
+			wantErrString: "GetHivelocityDeviceIDFromNode(node) failed: ParseInt failed. " +
+				"node.Spec.ProviderID \"hivelocity://999999999999999999\": " +
+				"failed to convert node.Spec.ProviderID",
 		},
 	}
 	for _, tt := range tests {
