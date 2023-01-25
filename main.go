@@ -53,7 +53,7 @@ func main() {
 	os.Exit(code)
 }
 
-func cloudInitializer(config *cloudcontrollerconfig.CompletedConfig) cloudprovider.Interface { //nolint:ireturn
+func cloudInitializer(config *cloudcontrollerconfig.CompletedConfig) cloudprovider.Interface { //nolint:ireturn,lll // implements InitCloudFunc
 	cloudConfig := config.ComponentConfig.KubeCloudShared.CloudProvider
 	cloud, err := cloudprovider.InitCloudProvider(cloudConfig.Name, cloudConfig.CloudConfigFile)
 	if err != nil {

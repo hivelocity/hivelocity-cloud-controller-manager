@@ -47,7 +47,7 @@ var _ cloudprovider.Interface = (*cloud)(nil)
 func newCloud() (*cloud, error) {
 	apiKey := os.Getenv(hivelocityAPIKeyENVVar)
 	if apiKey == "" {
-		return nil, ErrEnvVarMissing
+		return nil, errEnvVarMissing
 	}
 
 	apiClientConfig := hv.NewConfiguration()
@@ -64,33 +64,33 @@ func newCloud() (*cloud, error) {
 	}, nil
 }
 
-var ErrEnvVarMissing = fmt.Errorf("environment variable %q is missing or empty", hivelocityAPIKeyENVVar) //nolint:revive
+var errEnvVarMissing = fmt.Errorf("environment variable %q is missing or empty", hivelocityAPIKeyENVVar)
 
 func (c *cloud) Initialize(clientBuilder cloudprovider.ControllerClientBuilder, stop <-chan struct{}) {
 }
 
-func (c *cloud) Instances() (cloudprovider.Instances, bool) { //nolint:ireturn
+func (c *cloud) Instances() (cloudprovider.Instances, bool) { //nolint:ireturn // implements cloudprovider.Interface
 	// we only implement InstancesV2
 	return nil, false
 }
 
-func (c *cloud) InstancesV2() (cloudprovider.InstancesV2, bool) { //nolint:ireturn
+func (c *cloud) InstancesV2() (cloudprovider.InstancesV2, bool) { //nolint:ireturn // implements cloudprovider.Interface
 	return c.instancesV2, true
 }
 
-func (c *cloud) Zones() (cloudprovider.Zones, bool) { //nolint:ireturn
+func (c *cloud) Zones() (cloudprovider.Zones, bool) { //nolint:ireturn // implements cloudprovider.Interface
 	return nil, false
 }
 
-func (c *cloud) LoadBalancer() (cloudprovider.LoadBalancer, bool) { //nolint:ireturn
+func (c *cloud) LoadBalancer() (cloudprovider.LoadBalancer, bool) { //nolint:ireturn,lll // implements cloudprovider.Interface
 	return nil, false
 }
 
-func (c *cloud) Clusters() (cloudprovider.Clusters, bool) { //nolint:ireturn
+func (c *cloud) Clusters() (cloudprovider.Clusters, bool) { //nolint:ireturn // implements cloudprovider.Interface
 	return nil, false
 }
 
-func (c *cloud) Routes() (cloudprovider.Routes, bool) { //nolint:ireturn
+func (c *cloud) Routes() (cloudprovider.Routes, bool) { //nolint:ireturn // implements cloudprovider.Interface
 	return nil, false
 }
 

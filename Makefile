@@ -91,7 +91,6 @@ generate: ## Run all generate-manifests, generate-go-deepcopyand generate-go-con
 
 .PHONY: ensure-boilerplate
 ensure-boilerplate: ## Ensures that a boilerplate exists in each file by adding missing boilerplates
-	set -x
 	./hack/ensure-boilerplate.sh
 
 ##@ Lint and Verify

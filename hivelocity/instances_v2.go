@@ -127,7 +127,7 @@ func (i2 *HVInstancesV2) InstanceMetadata(ctx context.Context, node *corev1.Node
 	}
 
 	// HV tag. Example "instance-type=abc".
-	instanceType, err := hvutils.GetInstanceTypeFromTags(device.Tags, deviceID)
+	instanceType, err := hvutils.GetInstanceTypeFromTags(device.Tags)
 	if err != nil {
 		return nil, fmt.Errorf("GetInstanceTypeFromTags() failed. deviceID=%d. %w", deviceID,
 			err)

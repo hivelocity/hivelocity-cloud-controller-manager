@@ -28,7 +28,7 @@ import (
 // from a slice of strings.
 // The slice is usually from the Hivelocity API of a device.
 // Example: {"instance-type=foo", "other-label"} would return "foo".
-func GetInstanceTypeFromTags(tags []string, deviceID int32) (string, error) {
+func GetInstanceTypeFromTags(tags []string) (string, error) {
 	prefix := "instance-type="
 	instanceTypes := make([]string, 0, 1)
 	for _, tag := range tags {
@@ -40,23 +40,23 @@ func GetInstanceTypeFromTags(tags []string, deviceID int32) (string, error) {
 		instanceTypes = append(instanceTypes, instanceType)
 	}
 	if len(instanceTypes) == 0 {
-		return "", fmt.Errorf("%w: deviceID=%d", ErrNoInstanceTypeFound, deviceID)
+		return "", ErrNoInstanceTypeFound
 	}
 	if len(instanceTypes) > 1 {
-		return "", fmt.Errorf("deviceID: %d instanceTypes: %v. %w", deviceID,
-			instanceTypes, ErrMoreThanOneTagFound)
+		return "", fmt.Errorf("%w: instanceTypes: %v",
+			ErrMoreThanOneTagFound, instanceTypes)
 	}
 	instanceType := instanceTypes[0]
 
 	if errs := validation.IsValidLabelValue(instanceType); len(errs) != 0 {
-		return "", fmt.Errorf("deviceID=%d has invalid tag %q %s: %w", deviceID, instanceType,
-			strings.Join(errs, "; "), ErrInvalidLabelValue)
+		return "", fmt.Errorf("%w: %q %s", ErrInvalidLabelValue, instanceType,
+			strings.Join(errs, "; "))
 	}
 	return instanceType, nil
 }
 
 var (
-	ErrMoreThanOneTagFound = fmt.Errorf("more than one instance-type tag found") //nolint:revive
-	ErrInvalidLabelValue   = fmt.Errorf("invalid label value")                   //nolint:revive
-	ErrNoInstanceTypeFound = fmt.Errorf("no instance-type tag found")            //nolint:revive
+	ErrMoreThanOneTagFound = fmt.Errorf("more than one instance-type tag found") //nolint:revive // ...
+	ErrInvalidLabelValue   = fmt.Errorf("invalid label value")                   //nolint:revive // ...
+	ErrNoInstanceTypeFound = fmt.Errorf("no instance-type tag found")            //nolint:revive // ...
 )
