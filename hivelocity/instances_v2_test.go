@@ -31,7 +31,8 @@ import (
 )
 
 func Test_GetHivelocityDeviceIDFromNode(t *testing.T) {
-	var tests = []struct {
+	t.Parallel()
+	tests := []struct {
 		providerID    string
 		wantDeviceID  int32
 		wantErrString string
@@ -47,10 +48,10 @@ func Test_GetHivelocityDeviceIDFromNode(t *testing.T) {
 			wantErrString: "",
 		},
 	}
-	var node = &corev1.Node{}
+	node := newNode()
 	for _, tt := range tests {
 		node.Spec.ProviderID = tt.providerID
-		gotProviderID, gotErr := GetHivelocityDeviceIDFromNode(node)
+		gotProviderID, gotErr := getHivelocityDeviceIDFromNode(node)
 		msg := fmt.Sprintf("Input: providerID=%q", tt.providerID)
 		if tt.wantErrString == "" {
 			require.NoError(t, gotErr, msg)
@@ -96,7 +97,9 @@ func standardMocks(m *mocks.Client) {
 	m.On("GetBareMetalDevice", mock.Anything, int32(9999999)).Return(
 		nil, client.ErrNoSuchDevice)
 }
+
 func Test_InstanceExists(t *testing.T) {
+	t.Parallel()
 	m := mocks.NewClient(t)
 
 	node := newNode()
@@ -120,9 +123,10 @@ func Test_InstanceExists(t *testing.T) {
 			wantErrString: "",
 		},
 		{
-			providerID:    999999999999999999,
-			wantBool:      false,
-			wantErrString: "GetHivelocityDeviceIDFromNode(node) failed: failed to convert node.Spec.ProviderID \"hivelocity://999999999999999999\" to int32",
+			providerID: 999999999999999999,
+			wantBool:   false,
+			wantErrString: "GetHivelocityDeviceIDFromNode(node) failed: " +
+				"failed to convert node.Spec.ProviderID \"hivelocity://999999999999999999\" to int32",
 		},
 	}
 	for _, tt := range tests {
@@ -140,8 +144,8 @@ func Test_InstanceExists(t *testing.T) {
 }
 
 func Test_InstanceShutdown(t *testing.T) {
+	t.Parallel()
 	m := mocks.NewClient(t)
-
 	node := newNode()
 	ctx := context.Background()
 	standardMocks(m)
@@ -178,6 +182,7 @@ func Test_InstanceShutdown(t *testing.T) {
 }
 
 func Test_InstanceMetadata(t *testing.T) {
+	t.Parallel()
 	m := mocks.NewClient(t)
 	node := newNode()
 	ctx := context.Background()

@@ -42,7 +42,7 @@ type realClient struct {
 var _ Client = (*realClient)(nil)
 
 // NewClient creates a struct which implements the Client interface.
-func NewClient(client *hv.APIClient) Client {
+func NewClient(client *hv.APIClient) Client { //nolint:ireturn
 	return &realClient{client: client}
 }
 

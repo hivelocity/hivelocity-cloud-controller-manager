@@ -40,17 +40,23 @@ func GetInstanceTypeFromTags(tags []string, deviceID int32) (string, error) {
 		instanceTypes = append(instanceTypes, instanceType)
 	}
 	if len(instanceTypes) == 0 {
-		return "", fmt.Errorf("no instance-type tag found on deviceID=%d", deviceID)
+		return "", fmt.Errorf("%w: deviceID=%d", ErrNoInstanceTypeFound, deviceID)
 	}
 	if len(instanceTypes) > 1 {
-		return "", fmt.Errorf("more than one instance-type tag found on deviceID=%d: %v", deviceID,
-			instanceTypes)
+		return "", fmt.Errorf("deviceID: %d instanceTypes: %v. %w", deviceID,
+			instanceTypes, ErrMoreThanOneTagFound)
 	}
 	instanceType := instanceTypes[0]
 
 	if errs := validation.IsValidLabelValue(instanceType); len(errs) != 0 {
-		return "", fmt.Errorf("deviceID=%d has invalid tag %q %s", deviceID, instanceType,
-			strings.Join(errs, "; "))
+		return "", fmt.Errorf("deviceID=%d has invalid tag %q %s: %w", deviceID, instanceType,
+			strings.Join(errs, "; "), ErrInvalidLabelValue)
 	}
 	return instanceType, nil
 }
+
+var (
+	ErrMoreThanOneTagFound = fmt.Errorf("more than one instance-type tag found") //nolint:revive
+	ErrInvalidLabelValue   = fmt.Errorf("invalid label value")                   //nolint:revive
+	ErrNoInstanceTypeFound = fmt.Errorf("no instance-type tag found")            //nolint:revive
+)

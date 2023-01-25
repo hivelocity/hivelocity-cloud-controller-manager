@@ -44,10 +44,10 @@ type cloud struct {
 
 var _ cloudprovider.Interface = (*cloud)(nil)
 
-func newCloud() (cloudprovider.Interface, error) {
+func newCloud() (*cloud, error) {
 	apiKey := os.Getenv(hivelocityAPIKeyENVVar)
 	if apiKey == "" {
-		return nil, fmt.Errorf("environment variable %q is missing or empty", hivelocityAPIKeyENVVar)
+		return nil, ErrEnvVarMissing
 	}
 
 	apiClientConfig := hv.NewConfiguration()
@@ -56,41 +56,41 @@ func newCloud() (cloudprovider.Interface, error) {
 
 	klog.Infof("Hivelocity cloud controller manager %s started\n", providerVersion)
 
-	i2 := HVInstancesV2{
-		Client: client.NewClient(apiClient),
-	}
+	i2 := NewHVInstanceV2(client.NewClient(apiClient))
 
 	return &cloud{
 		client:      apiClient,
-		instancesV2: &i2,
+		instancesV2: i2,
 	}, nil
 }
+
+var ErrEnvVarMissing = fmt.Errorf("environment variable %q is missing or empty", hivelocityAPIKeyENVVar) //nolint:revive
 
 func (c *cloud) Initialize(clientBuilder cloudprovider.ControllerClientBuilder, stop <-chan struct{}) {
 }
 
-func (c *cloud) Instances() (cloudprovider.Instances, bool) {
+func (c *cloud) Instances() (cloudprovider.Instances, bool) { //nolint:ireturn
 	// we only implement InstancesV2
 	return nil, false
 }
 
-func (c *cloud) InstancesV2() (cloudprovider.InstancesV2, bool) {
+func (c *cloud) InstancesV2() (cloudprovider.InstancesV2, bool) { //nolint:ireturn
 	return c.instancesV2, true
 }
 
-func (c *cloud) Zones() (cloudprovider.Zones, bool) {
+func (c *cloud) Zones() (cloudprovider.Zones, bool) { //nolint:ireturn
 	return nil, false
 }
 
-func (c *cloud) LoadBalancer() (cloudprovider.LoadBalancer, bool) {
+func (c *cloud) LoadBalancer() (cloudprovider.LoadBalancer, bool) { //nolint:ireturn
 	return nil, false
 }
 
-func (c *cloud) Clusters() (cloudprovider.Clusters, bool) {
+func (c *cloud) Clusters() (cloudprovider.Clusters, bool) { //nolint:ireturn
 	return nil, false
 }
 
-func (c *cloud) Routes() (cloudprovider.Routes, bool) {
+func (c *cloud) Routes() (cloudprovider.Routes, bool) { //nolint:ireturn
 	return nil, false
 }
 

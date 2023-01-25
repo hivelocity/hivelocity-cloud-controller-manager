@@ -18,6 +18,7 @@ package hivelocity
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"strconv"
 	"strings"
@@ -40,32 +41,36 @@ func NewHVInstanceV2(c client.Client) *HVInstancesV2 {
 	return &HVInstancesV2{Client: c}
 }
 
-// GetHivelocityDeviceIDFromNode returns the deviceID from a Node.
+// getHivelocityDeviceIDFromNode returns the deviceID from a Node.
 // Example: If Node.Spec.ProviderID is "hivelocity://123", then 123
 // will be returned.
-func GetHivelocityDeviceIDFromNode(node *corev1.Node) (int32, error) {
+func getHivelocityDeviceIDFromNode(node *corev1.Node) (int32, error) {
 	providerPrefix := providerName + "://"
 	if !strings.HasPrefix(node.Spec.ProviderID, providerPrefix) {
-		return 0, fmt.Errorf("missing prefix %q in node.Spec.ProviderID %q",
-			providerPrefix, node.Spec.ProviderID)
+		return 0, fmt.Errorf("%q: %w", node.Spec.ProviderID, errMissingProviderPrefix)
 	}
 	deviceID, err := strconv.ParseInt(node.Spec.ProviderID[len(providerPrefix):], 10, 32)
 	if err != nil {
-		return 0, fmt.Errorf("failed to convert node.Spec.ProviderID %q to int32",
-			node.Spec.ProviderID)
+		return 0, fmt.Errorf("ParseInt failed. node.Spec.ProviderID %q: %w",
+			node.Spec.ProviderID, errFailedToConvertProviderID)
 	}
 	return int32(deviceID), nil
 }
 
+var (
+	errMissingProviderPrefix     = fmt.Errorf("missing prefix %q in node.Spec.ProviderID", providerName)
+	errFailedToConvertProviderID = fmt.Errorf("failed to convert node.Spec.ProviderID")
+)
+
 // InstanceExists returns true if the instance for the given node exists according to the cloud provider.
 // Use the node.name or node.spec.providerID field to find the node in the cloud provider.
 func (i2 *HVInstancesV2) InstanceExists(ctx context.Context, node *corev1.Node) (bool, error) {
-	deviceID, err := GetHivelocityDeviceIDFromNode(node)
+	deviceID, err := getHivelocityDeviceIDFromNode(node)
 	if err != nil {
 		return false, fmt.Errorf("GetHivelocityDeviceIDFromNode(node) failed: %w", err)
 	}
 	_, err = i2.Client.GetBareMetalDevice(ctx, deviceID)
-	if err == client.ErrNoSuchDevice {
+	if errors.Is(err, client.ErrNoSuchDevice) {
 		return false, nil
 	}
 	if err != nil {
@@ -74,10 +79,13 @@ func (i2 *HVInstancesV2) InstanceExists(ctx context.Context, node *corev1.Node) 
 	return true, nil
 }
 
+// ErrUnknownPowerStatus .
+var ErrUnknownPowerStatus = errors.New("unknown PowerStatus")
+
 // InstanceShutdown returns true if the instance is shutdown according to the cloud provider.
 // Use the node.name or node.spec.providerID field to find the node in the cloud provider.
 func (i2 *HVInstancesV2) InstanceShutdown(ctx context.Context, node *corev1.Node) (bool, error) {
-	deviceID, err := GetHivelocityDeviceIDFromNode(node)
+	deviceID, err := getHivelocityDeviceIDFromNode(node)
 	if err != nil {
 		return false, fmt.Errorf("GetHivelocityDeviceIDFromNode(node) failed: %w", err)
 	}
@@ -91,7 +99,8 @@ func (i2 *HVInstancesV2) InstanceShutdown(ctx context.Context, node *corev1.Node
 	case "OFF":
 		return true, nil
 	default:
-		return false, fmt.Errorf("device with ID %q has unknown PowerStatus %q", deviceID, device.PowerStatus)
+		return false, fmt.Errorf("device with ID %q has unknown PowerStatus %q: %w",
+			deviceID, device.PowerStatus, ErrUnknownPowerStatus)
 	}
 }
 
@@ -100,8 +109,10 @@ func (i2 *HVInstancesV2) InstanceShutdown(ctx context.Context, node *corev1.Node
 // Implementations should always check node.spec.providerID first when trying to discover the instance
 // for a given node. In cases where node.spec.providerID is empty, implementations can use other
 // properties of the node like its name, labels and annotations.
-func (i2 *HVInstancesV2) InstanceMetadata(ctx context.Context, node *corev1.Node) (*cloudprovider.InstanceMetadata, error) {
-	deviceID, err := GetHivelocityDeviceIDFromNode(node)
+func (i2 *HVInstancesV2) InstanceMetadata(ctx context.Context, node *corev1.Node) (
+	*cloudprovider.InstanceMetadata, error,
+) {
+	deviceID, err := getHivelocityDeviceIDFromNode(node)
 	if err != nil {
 		return nil, fmt.Errorf("GetHivelocityDeviceIDFromNode(node) failed: %w", err)
 	}
@@ -122,7 +133,7 @@ func (i2 *HVInstancesV2) InstanceMetadata(ctx context.Context, node *corev1.Node
 			err)
 	}
 
-	var metaData = cloudprovider.InstanceMetadata{
+	metaData := cloudprovider.InstanceMetadata{
 		ProviderID:    strconv.Itoa(int(deviceID)),
 		InstanceType:  instanceType,
 		NodeAddresses: []corev1.NodeAddress{addr},

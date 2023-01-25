@@ -47,12 +47,13 @@ func main() {
 	controllerInitializers := app.DefaultInitFuncConstructors
 
 	fss := cliflag.NamedFlagSets{}
-	command := app.NewCloudControllerManagerCommand(ccmOptions, cloudInitializer, controllerInitializers, fss, wait.NeverStop)
+	command := app.NewCloudControllerManagerCommand(ccmOptions, cloudInitializer,
+		controllerInitializers, fss, wait.NeverStop)
 	code := cli.Run(command)
 	os.Exit(code)
 }
 
-func cloudInitializer(config *cloudcontrollerconfig.CompletedConfig) cloudprovider.Interface {
+func cloudInitializer(config *cloudcontrollerconfig.CompletedConfig) cloudprovider.Interface { //nolint:ireturn
 	cloudConfig := config.ComponentConfig.KubeCloudShared.CloudProvider
 	cloud, err := cloudprovider.InitCloudProvider(cloudConfig.Name, cloudConfig.CloudConfigFile)
 	if err != nil {
@@ -67,9 +68,13 @@ func cloudInitializer(config *cloudcontrollerconfig.CompletedConfig) cloudprovid
 		https://github.com/kubernetes/cloud-provider/issues/12
 		if !cloud.HasClusterID() {
 			if config.ComponentConfig.KubeCloudShared.AllowUntaggedCloud {
-				klog.Warning("detected a cluster without a ClusterID.  A ClusterID will be required in the future.  Please tag your cluster to avoid any future issues")
+				klog.Warning("detected a cluster without a ClusterID. " +
+				    "A ClusterID will be required in the future. "+
+					"Please tag your cluster to avoid any future issues")
 			} else {
-				klog.Fatalf("no ClusterID found.  A ClusterID is required for the cloud provider to function properly.  This check can be bypassed by setting the allow-untagged-cloud option")
+				klog.Fatalf("no ClusterID found. A ClusterID is required " +
+				    "for the cloud provider to function properly. " +
+					"This check can be bypassed by setting the allow-untagged-cloud option")
 			}
 		}
 	*/

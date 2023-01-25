@@ -96,6 +96,8 @@ linters-settings:
       - diagnostic
       - experimental
       - performance
+   # disabled-checks:
+   #   - whyNoLint
   promlinter:
     # Promlinter cannot infer all metrics name in static analysis.
     # Enable strict mode will also include the errors caused by failing to parse the args.
