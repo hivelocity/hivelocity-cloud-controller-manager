@@ -65,40 +65,48 @@ func newCloud() (*cloud, error) {
 
 var errEnvVarMissing = fmt.Errorf("environment variable %q is missing or empty", hivelocityAPIKeyENVVar)
 
+// Initialize implements cloudprovider.Interface.Initialize.
 func (c *cloud) Initialize(clientBuilder cloudprovider.ControllerClientBuilder, stop <-chan struct{}) {
 }
 
+// Instances implements cloudprovider.Interface.Instances.
 func (c *cloud) Instances() (cloudprovider.Instances, bool) { //nolint:ireturn // implements cloudprovider.Interface
 	// we only implement InstancesV2
 	return nil, false
 }
 
+// InstancesV2 implements cloudprovider.Interface.InstancesV2.
 func (c *cloud) InstancesV2() (cloudprovider.InstancesV2, bool) { //nolint:ireturn // implements cloudprovider.Interface
 	return c.instancesV2, true
 }
 
+// Zones implements cloudprovider.Interface.Zones.
 func (c *cloud) Zones() (cloudprovider.Zones, bool) { //nolint:ireturn // implements cloudprovider.Interface
 	// we only implement InstancesV2
 	return nil, false
 }
 
+// LoadBalancer implements cloudprovider.Interface.LoadBalancer.
 func (c *cloud) LoadBalancer() (cloudprovider.LoadBalancer, bool) { //nolint:ireturn,lll // implements cloudprovider.Interface
 	return nil, false // TODO: Up to now Hivelocity has not API for LoadBalancers.
 }
 
+// Clusters implements cloudprovider.Interface.Clusters.
 func (c *cloud) Clusters() (cloudprovider.Clusters, bool) { //nolint:ireturn // implements cloudprovider.Interface
 	return nil, false // TODO: Will we implement this optional method?
 }
 
+// Routes implements cloudprovider.Interface.Routes.
 func (c *cloud) Routes() (cloudprovider.Routes, bool) { //nolint:ireturn // implements cloudprovider.Interface
 	return nil, false // TODO: Will we implement this optional method?
 }
 
+// ProviderName implements cloudprovider.Interface.ProviderName.
 func (c *cloud) ProviderName() string {
 	return providerName
 }
 
-// HasClusterID is not implemented.
+// HasClusterID implements cloudprovider.Interface.HasClusterID.
 func (c *cloud) HasClusterID() bool {
 	// TODO: The meaning if this method is unclear.
 	// Waiting for clarification: https://github.com/kubernetes/cloud-provider/issues/64
