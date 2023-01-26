@@ -31,14 +31,14 @@ import (
 
 // HVInstancesV2 implements cloudprovider.InstanceV2.
 type HVInstancesV2 struct {
-	Client client.Interface
+	client client.Interface
 }
 
 var _ cloudprovider.InstancesV2 = &HVInstancesV2{}
 
 // NewHVInstanceV2 creates a new HVInstancesV2 struct.
 func NewHVInstanceV2(c client.Interface) *HVInstancesV2 {
-	return &HVInstancesV2{Client: c}
+	return &HVInstancesV2{client: c}
 }
 
 // getHivelocityDeviceIDFromNode returns the deviceID from a Node.
@@ -69,7 +69,7 @@ func (i2 *HVInstancesV2) InstanceExists(ctx context.Context, node *corev1.Node) 
 	if err != nil {
 		return false, fmt.Errorf("GetHivelocityDeviceIDFromNode(node) failed: %w", err)
 	}
-	_, err = i2.Client.GetBareMetalDevice(ctx, deviceID)
+	_, err = i2.client.GetBareMetalDevice(ctx, deviceID)
 	if errors.Is(err, client.ErrNoSuchDevice) {
 		return false, nil
 	}
@@ -89,7 +89,7 @@ func (i2 *HVInstancesV2) InstanceShutdown(ctx context.Context, node *corev1.Node
 	if err != nil {
 		return false, fmt.Errorf("GetHivelocityDeviceIDFromNode(node) failed: %w", err)
 	}
-	device, err := i2.Client.GetBareMetalDevice(ctx, deviceID)
+	device, err := i2.client.GetBareMetalDevice(ctx, deviceID)
 	if err != nil {
 		return false, fmt.Errorf("i2.API.GetBareMetalDeviceIdResource(deviceID) failed: %w", err)
 	}
@@ -116,7 +116,7 @@ func (i2 *HVInstancesV2) InstanceMetadata(ctx context.Context, node *corev1.Node
 	if err != nil {
 		return nil, fmt.Errorf("GetHivelocityDeviceIDFromNode(node) failed: %w", err)
 	}
-	device, err := i2.Client.GetBareMetalDevice(ctx, deviceID)
+	device, err := i2.client.GetBareMetalDevice(ctx, deviceID)
 	if err != nil {
 		return nil, fmt.Errorf("i2.API.GetBareMetalDeviceIdResource(deviceID) failed: %w", err)
 	}
