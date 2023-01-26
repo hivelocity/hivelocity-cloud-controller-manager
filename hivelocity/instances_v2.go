@@ -49,7 +49,7 @@ func getHivelocityDeviceIDFromNode(node *corev1.Node) (int32, error) {
 	if !strings.HasPrefix(node.Spec.ProviderID, providerPrefix) {
 		return 0, fmt.Errorf("ProviderID: %q: %w", node.Spec.ProviderID, errMissingProviderPrefix)
 	}
-	deviceID, err := strconv.ParseInt(node.Spec.ProviderID[len(providerPrefix):], 10, 32)
+	deviceID, err := strconv.ParseInt(strings.TrimPrefix(node.Spec.ProviderID, providerPrefix), 10, 32)
 	if err != nil {
 		return 0, fmt.Errorf("ParseInt failed. node.Spec.ProviderID %q: %w",
 			node.Spec.ProviderID, errFailedToConvertProviderID)
