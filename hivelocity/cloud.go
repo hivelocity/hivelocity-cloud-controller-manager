@@ -79,15 +79,16 @@ func (c *cloud) InstancesV2() (cloudprovider.InstancesV2, bool) { //nolint:iretu
 }
 
 func (c *cloud) Zones() (cloudprovider.Zones, bool) { //nolint:ireturn // implements cloudprovider.Interface
+	// we only implement InstancesV2
 	return nil, false
 }
 
 func (c *cloud) LoadBalancer() (cloudprovider.LoadBalancer, bool) { //nolint:ireturn,lll // implements cloudprovider.Interface
-	return nil, false
+	return nil, false // TODO: Up to now Hivelocity has not API for LoadBalancers.
 }
 
 func (c *cloud) Clusters() (cloudprovider.Clusters, bool) { //nolint:ireturn // implements cloudprovider.Interface
-	return nil, false
+	return nil, false // TODO: Will we implement this optional method?
 }
 
 func (c *cloud) Routes() (cloudprovider.Routes, bool) { //nolint:ireturn // implements cloudprovider.Interface
