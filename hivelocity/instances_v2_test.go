@@ -48,9 +48,8 @@ func Test_getHivelocityDeviceIDFromNode(t *testing.T) {
 			wantErrString: "",
 		},
 	}
-	node := newNode()
 	for _, tt := range tests {
-		node.Spec.ProviderID = tt.providerID
+		node := newNode(tt.providerID)
 		gotProviderID, gotErr := getHivelocityDeviceIDFromNode(node)
 		msg := fmt.Sprintf("Input: providerID=%q", tt.providerID)
 		if tt.wantErrString == "" {
@@ -63,10 +62,10 @@ func Test_getHivelocityDeviceIDFromNode(t *testing.T) {
 	}
 }
 
-func newNode() *corev1.Node {
+func newNode(providerID string) *corev1.Node {
 	return &corev1.Node{
 		Spec: corev1.NodeSpec{
-			ProviderID: "hivelocity://14730",
+			ProviderID: providerID,
 		},
 	}
 }
@@ -102,7 +101,6 @@ func Test_InstanceExists(t *testing.T) {
 	t.Parallel()
 	m := mocks.NewClient(t)
 
-	node := newNode()
 	ctx := context.Background()
 	standardMocks(m)
 	i2 := NewHVInstanceV2(m)
@@ -131,7 +129,7 @@ func Test_InstanceExists(t *testing.T) {
 		},
 	}
 	for _, tt := range tests {
-		node.Spec.ProviderID = fmt.Sprintf("hivelocity://%d", tt.providerID)
+		node := newNode(fmt.Sprintf("hivelocity://%d", tt.providerID))
 		gotBool, gotErr := i2.InstanceExists(ctx, node)
 		msg := fmt.Sprintf("Input: providerID=%+v", tt.providerID)
 		if tt.wantErrString == "" {
@@ -147,7 +145,6 @@ func Test_InstanceExists(t *testing.T) {
 func Test_InstanceShutdown(t *testing.T) {
 	t.Parallel()
 	m := mocks.NewClient(t)
-	node := newNode()
 	ctx := context.Background()
 	standardMocks(m)
 	i2 := NewHVInstanceV2(m)
@@ -169,7 +166,7 @@ func Test_InstanceShutdown(t *testing.T) {
 		},
 	}
 	for _, tt := range tests {
-		node.Spec.ProviderID = fmt.Sprintf("hivelocity://%d", tt.providerID)
+		node := newNode(fmt.Sprintf("hivelocity://%d", tt.providerID))
 		gotBool, gotErr := i2.InstanceShutdown(ctx, node)
 		msg := fmt.Sprintf("Input: providerID=%+v", tt.providerID)
 		if tt.wantErrString == "" {
@@ -185,7 +182,6 @@ func Test_InstanceShutdown(t *testing.T) {
 func Test_InstanceMetadata(t *testing.T) {
 	t.Parallel()
 	m := mocks.NewClient(t)
-	node := newNode()
 	ctx := context.Background()
 	standardMocks(m)
 	i2 := NewHVInstanceV2(m)
@@ -217,7 +213,7 @@ func Test_InstanceMetadata(t *testing.T) {
 		},
 	}
 	for _, tt := range tests {
-		node.Spec.ProviderID = fmt.Sprintf("hivelocity://%d", tt.providerID)
+		node := newNode(fmt.Sprintf("hivelocity://%d", tt.providerID))
 		gotMetaData, gotErr := i2.InstanceMetadata(ctx, node)
 		msg := fmt.Sprintf("Input: providerID=%+v", tt.providerID)
 		if tt.wantErrString == "" {
