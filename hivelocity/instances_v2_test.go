@@ -63,11 +63,13 @@ func Test_getHivelocityDeviceIDFromNode(t *testing.T) {
 }
 
 func newNode(providerID string) *corev1.Node {
-	return &corev1.Node{
+	node := corev1.Node{
 		Spec: corev1.NodeSpec{
 			ProviderID: providerID,
 		},
 	}
+	node.ObjectMeta.Name = "myNode"
+	return &node
 }
 
 func standardMocks(m *mocks.Client) {
@@ -123,7 +125,8 @@ func Test_InstanceExists(t *testing.T) {
 		{
 			providerID: 999999999999999999,
 			wantBool:   false,
-			wantErrString: "ParseInt failed. node.Spec.ProviderID \"hivelocity://999999999999999999\": " +
+			wantErrString: "failed to get deviceID from node myNode: ParseInt failed. " +
+				"node.Spec.ProviderID \"hivelocity://999999999999999999\": " +
 				"failed to convert node.Spec.ProviderID",
 		},
 	}
@@ -161,7 +164,7 @@ func Test_InstanceShutdown(t *testing.T) {
 		{
 			providerID:    9999999,
 			wantBool:      false,
-			wantErrString: "i2.API.GetBareMetalDeviceIdResource(deviceID) failed: no such device",
+			wantErrString: "InstanceShutdown: deviceID 9999999: no such device",
 		},
 	}
 	for _, tt := range tests {
@@ -208,7 +211,7 @@ func Test_InstanceMetadata(t *testing.T) {
 		{
 			providerID:    9999999,
 			wantMetaData:  nil,
-			wantErrString: "i2.API.GetBareMetalDeviceIdResource(deviceID) failed: no such device",
+			wantErrString: "InstanceMetadata: deviceID 9999999: no such device",
 		},
 	}
 	for _, tt := range tests {

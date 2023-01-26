@@ -67,14 +67,14 @@ var (
 func (i2 *HVInstancesV2) InstanceExists(ctx context.Context, node *corev1.Node) (bool, error) {
 	deviceID, err := getHivelocityDeviceIDFromNode(node)
 	if err != nil {
-		return false, err
+		return false, fmt.Errorf("failed to get deviceID from node %s: %w", node.ObjectMeta.Name, err)
 	}
 	_, err = i2.client.GetBareMetalDevice(ctx, deviceID)
 	if errors.Is(err, client.ErrNoSuchDevice) {
 		return false, nil
 	}
 	if err != nil {
-		return false, err
+		return false, fmt.Errorf("InstanceExists: %q: %w", deviceID, err)
 	}
 	return true, nil
 }
@@ -87,11 +87,11 @@ var ErrUnknownPowerStatus = errors.New("unknown PowerStatus")
 func (i2 *HVInstancesV2) InstanceShutdown(ctx context.Context, node *corev1.Node) (bool, error) {
 	deviceID, err := getHivelocityDeviceIDFromNode(node)
 	if err != nil {
-		return false, fmt.Errorf("getHivelocityDeviceIDFromNode(node) failed: %w", err)
+		return false, fmt.Errorf("failed to get deviceID from node %s: %w", node.ObjectMeta.Name, err)
 	}
 	device, err := i2.client.GetBareMetalDevice(ctx, deviceID)
 	if err != nil {
-		return false, fmt.Errorf("i2.API.GetBareMetalDeviceIdResource(deviceID) failed: %w", err)
+		return false, fmt.Errorf("InstanceShutdown: deviceID %d: %w", deviceID, err)
 	}
 	switch device.PowerStatus {
 	case "ON":
@@ -114,11 +114,11 @@ func (i2 *HVInstancesV2) InstanceMetadata(ctx context.Context, node *corev1.Node
 ) {
 	deviceID, err := getHivelocityDeviceIDFromNode(node)
 	if err != nil {
-		return nil, fmt.Errorf("getHivelocityDeviceIDFromNode(node) failed: %w", err)
+		return nil, fmt.Errorf("failed to get deviceID from node %s: %w", node.ObjectMeta.Name, err)
 	}
 	device, err := i2.client.GetBareMetalDevice(ctx, deviceID)
 	if err != nil {
-		return nil, fmt.Errorf("i2.API.GetBareMetalDeviceIdResource(deviceID) failed: %w", err)
+		return nil, fmt.Errorf("InstanceMetadata: deviceID %d: %w", deviceID, err)
 	}
 
 	addr := corev1.NodeAddress{
@@ -129,8 +129,7 @@ func (i2 *HVInstancesV2) InstanceMetadata(ctx context.Context, node *corev1.Node
 	// HV tag. Example "instance-type=abc".
 	instanceType, err := hvutils.GetInstanceTypeFromTags(device.Tags)
 	if err != nil {
-		return nil, fmt.Errorf("GetInstanceTypeFromTags() failed. deviceID=%d. %w", deviceID,
-			err)
+		return nil, fmt.Errorf("InstanceMetadata: %v: %w", deviceID, err)
 	}
 
 	metaData := cloudprovider.InstanceMetadata{
