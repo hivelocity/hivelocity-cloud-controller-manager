@@ -67,7 +67,7 @@ var (
 func (i2 *HVInstancesV2) InstanceExists(ctx context.Context, node *corev1.Node) (bool, error) {
 	deviceID, err := getHivelocityDeviceIDFromNode(node)
 	if err != nil {
-		return false, fmt.Errorf("GetHivelocityDeviceIDFromNode(node) failed: %w", err)
+		return false, fmt.Errorf("getHivelocityDeviceIDFromNode(node) failed: %w", err)
 	}
 	_, err = i2.client.GetBareMetalDevice(ctx, deviceID)
 	if errors.Is(err, client.ErrNoSuchDevice) {
@@ -87,7 +87,7 @@ var ErrUnknownPowerStatus = errors.New("unknown PowerStatus")
 func (i2 *HVInstancesV2) InstanceShutdown(ctx context.Context, node *corev1.Node) (bool, error) {
 	deviceID, err := getHivelocityDeviceIDFromNode(node)
 	if err != nil {
-		return false, fmt.Errorf("GetHivelocityDeviceIDFromNode(node) failed: %w", err)
+		return false, fmt.Errorf("getHivelocityDeviceIDFromNode(node) failed: %w", err)
 	}
 	device, err := i2.client.GetBareMetalDevice(ctx, deviceID)
 	if err != nil {
@@ -114,7 +114,7 @@ func (i2 *HVInstancesV2) InstanceMetadata(ctx context.Context, node *corev1.Node
 ) {
 	deviceID, err := getHivelocityDeviceIDFromNode(node)
 	if err != nil {
-		return nil, fmt.Errorf("GetHivelocityDeviceIDFromNode(node) failed: %w", err)
+		return nil, fmt.Errorf("getHivelocityDeviceIDFromNode(node) failed: %w", err)
 	}
 	device, err := i2.client.GetBareMetalDevice(ctx, deviceID)
 	if err != nil {

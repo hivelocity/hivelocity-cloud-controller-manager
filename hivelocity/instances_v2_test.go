@@ -30,7 +30,7 @@ import (
 	cloudprovider "k8s.io/cloud-provider"
 )
 
-func Test_GetHivelocityDeviceIDFromNode(t *testing.T) {
+func Test_getHivelocityDeviceIDFromNode(t *testing.T) {
 	t.Parallel()
 	tests := []struct {
 		providerID    string
@@ -125,7 +125,7 @@ func Test_InstanceExists(t *testing.T) {
 		{
 			providerID: 999999999999999999,
 			wantBool:   false,
-			wantErrString: "GetHivelocityDeviceIDFromNode(node) failed: ParseInt failed. " +
+			wantErrString: "getHivelocityDeviceIDFromNode(node) failed: ParseInt failed. " +
 				"node.Spec.ProviderID \"hivelocity://999999999999999999\": " +
 				"failed to convert node.Spec.ProviderID",
 		},
