@@ -21,7 +21,6 @@ linters:
     - gochecknoglobals
     - goconst
     - gocritic
-    - gocyclo
     - godot
     - goerr113
     - gofmt
@@ -35,7 +34,6 @@ linters:
     - ireturn
     - importas
     - ineffassign
-    - lll
     - loggercheck
     - makezero
     - misspell
@@ -59,7 +57,6 @@ linters:
     - typecheck
     - unconvert
     - usestdlibvars
-    - unparam
     - unused
     - wastedassign
     - whitespace
@@ -78,8 +75,6 @@ linters-settings:
         alias: corev1
   gofumpt:
     extra-rules: true
-  gocyclo:
-    min-complexity: 10
   nolintlint:
     allow-unused: false
     allow-leading-space: false
@@ -94,8 +89,10 @@ linters-settings:
   gocritic:
     enabled-tags:
       - diagnostic
-      - experimental
+      - style
       - performance
+      - experimental
+      - opinionated
    # disabled-checks:
    #   - whyNoLint
   promlinter:
@@ -109,6 +106,98 @@ linters-settings:
     # Default: ["EOF", "Err.*"]
     patterns:
       - ".*"
+  revive: 
+    enable-all-rules: true
+    rules:
+      # https://github.com/mgechev/revive/blob/master/RULES_DESCRIPTIONS.md#add-constant
+      - name: add-constant
+        severity: warning
+        disabled: false
+        arguments:
+          - maxLitCount: "3"
+            allowStrs: '""'
+            allowInts: "0,1,2"
+            ignoreFuncs: "Test*"
+
+      # https://github.com/mgechev/revive/blob/master/RULES_DESCRIPTIONS.md#argument-limit
+      - name: argument-limit
+        severity: warning
+        disabled: false
+        arguments: [4]
+      # https://github.com/mgechev/revive/blob/master/RULES_DESCRIPTIONS.md#banned-characters
+      - name: banned-characters
+        disabled: true
+      # https://github.com/mgechev/revive/blob/master/RULES_DESCRIPTIONS.md#cognitive-complexity
+      - name: cognitive-complexity
+        severity: warning
+        disabled: false
+        arguments: [7]
+      # https://github.com/mgechev/revive/blob/master/RULES_DESCRIPTIONS.md#cyclomatic
+      - name: cyclomatic
+        severity: warning
+        disabled: false
+        arguments: [10]
+      # https://github.com/mgechev/revive/blob/master/RULES_DESCRIPTIONS.md#defer
+      - name: defer
+        severity: warning
+        disabled: false
+        arguments:
+          - ["call-chain", "loop", "method-call", "recover", "immediate-recover", "return"]
+      # https://github.com/mgechev/revive/blob/master/RULES_DESCRIPTIONS.md#exported
+      - name: exported
+        severity: warning
+        disabled: false
+      # https://github.com/mgechev/revive/blob/master/RULES_DESCRIPTIONS.md#file-header
+      - name: file-header
+        disabled: true
+      # https://github.com/mgechev/revive/blob/master/RULES_DESCRIPTIONS.md#function-result-limit
+      - name: function-result-limit
+        severity: warning
+        disabled: false
+        arguments: [3]
+      # https://github.com/mgechev/revive/blob/master/RULES_DESCRIPTIONS.md#function-length
+      - name: function-length
+        severity: warning
+        disabled: false
+        arguments: [15, 0]
+      # https://github.com/mgechev/revive/blob/master/RULES_DESCRIPTIONS.md#imports-blacklist
+      - name: imports-blacklist
+        severity: warning
+        disabled: false
+        arguments:
+          - "crypto/md5"
+          - "crypto/sha1"
+      # https://github.com/mgechev/revive/blob/master/RULES_DESCRIPTIONS.md#line-length-limit
+      - name: line-length-limit
+        severity: warning
+        disabled: false
+        arguments: [120]
+      # https://github.com/mgechev/revive/blob/master/RULES_DESCRIPTIONS.md#max-public-structs
+      - name: max-public-structs
+        severity: warning
+        disabled: false
+        arguments: [3]
+      # https://github.com/mgechev/revive/blob/master/RULES_DESCRIPTIONS.md#string-format
+      - name: string-format
+        severity: warning
+        disabled: false
+        arguments:
+          - - 'core.WriteError[1].Message'
+            - '/^([^A-Z]|$)/'
+            - must not start with a capital letter
+          - - 'fmt.Errorf[0]'
+            - '/(^|[^\.!?])$/'
+            - must not end in punctuation
+          - - panic
+            - '/^[^\n]*$/'
+            - must not contain line breaks
+      # https://github.com/mgechev/revive/blob/master/RULES_DESCRIPTIONS.md#var-naming
+      - name: var-naming
+        severity: warning
+        disabled: false
+        arguments:
+          - ["ID"] # AllowList
+          - ["VM"] # DenyList
   unused:
     go: "1.19"
   usestdlibvars:
@@ -155,11 +244,6 @@ issues:
   # changes in PRs and avoid nitpicking.
   exclude-use-default: false
   exclude-rules:
-    # Disable unparam "always receives" which might not be really
-    # useful when building libraries.
-    - linters:
-        - unparam
-      text: always receives
     # hack/tools
     - linters:
         - typecheck
