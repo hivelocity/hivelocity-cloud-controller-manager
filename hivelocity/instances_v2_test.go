@@ -38,9 +38,10 @@ func Test_getHivelocityDeviceIDFromNode(t *testing.T) {
 		wantErrString string
 	}{
 		{
-			providerID:    "",
-			wantDeviceID:  0,
-			wantErrString: "ProviderID: \"\": missing prefix \"hivelocity\" in node.Spec.ProviderID",
+			providerID:   "",
+			wantDeviceID: 0,
+			wantErrString: "node: myNode, ProviderID: \"\": " +
+				"missing prefix \"hivelocity\" in node.Spec.ProviderID",
 		},
 		{
 			providerID:    "hivelocity://12345",
@@ -68,7 +69,7 @@ func newNode(providerID string) *corev1.Node {
 			ProviderID: providerID,
 		},
 	}
-	node.ObjectMeta.Name = "myNode"
+	node.SetName("myNode")
 	return &node
 }
 
@@ -125,8 +126,8 @@ func Test_InstanceExists(t *testing.T) {
 		{
 			providerID: 999999999999999999,
 			wantBool:   false,
-			wantErrString: "failed to get deviceID from node myNode: ParseInt failed. " +
-				"node.Spec.ProviderID \"hivelocity://999999999999999999\": " +
+			wantErrString: "InstanceExists(): getHivelocityDeviceIDFromNode() " +
+				"failed: node: myNode, ProviderID \"hivelocity://999999999999999999\": " +
 				"failed to convert node.Spec.ProviderID",
 		},
 	}
@@ -162,9 +163,10 @@ func Test_InstanceShutdown(t *testing.T) {
 			wantErrString: "",
 		},
 		{
-			providerID:    9999999,
-			wantBool:      false,
-			wantErrString: "InstanceShutdown: deviceID 9999999: no such device",
+			providerID: 9999999,
+			wantBool:   false,
+			wantErrString: "InstanceShutdown(): GetBareMetalDevice() failed. " +
+				"deviceID 9999999, node myNode: no such device",
 		},
 	}
 	for _, tt := range tests {
@@ -209,9 +211,10 @@ func Test_InstanceMetadata(t *testing.T) {
 			wantErrString: "",
 		},
 		{
-			providerID:    9999999,
-			wantMetaData:  nil,
-			wantErrString: "InstanceMetadata: deviceID 9999999: no such device",
+			providerID:   9999999,
+			wantMetaData: nil,
+			wantErrString: "InstanceMetadata(): GetBareMetalDevice() failed. " +
+				"node myNode, deviceID 9999999: no such device",
 		},
 	}
 	for _, tt := range tests {

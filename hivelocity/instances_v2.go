@@ -47,12 +47,12 @@ func NewHVInstanceV2(c client.Interface) *HVInstancesV2 {
 func getHivelocityDeviceIDFromNode(node *corev1.Node) (int32, error) {
 	providerPrefix := providerName + "://"
 	if !strings.HasPrefix(node.Spec.ProviderID, providerPrefix) {
-		return 0, fmt.Errorf("ProviderID: %q: %w", node.Spec.ProviderID, errMissingProviderPrefix)
+		return 0, fmt.Errorf("node: %s, ProviderID: %q: %w", node.GetName(), node.Spec.ProviderID, errMissingProviderPrefix)
 	}
 	deviceID, err := strconv.ParseInt(strings.TrimPrefix(node.Spec.ProviderID, providerPrefix), 10, 32)
 	if err != nil {
-		return 0, fmt.Errorf("ParseInt failed. node.Spec.ProviderID %q: %w",
-			node.Spec.ProviderID, errFailedToConvertProviderID)
+		return 0, fmt.Errorf("node: %s, ProviderID %q: %w",
+			node.GetName(), node.Spec.ProviderID, errFailedToConvertProviderID)
 	}
 	return int32(deviceID), nil
 }
@@ -65,16 +65,19 @@ var (
 // InstanceExists returns true if the instance for the given node exists according to the cloud provider.
 // Use the node.name or node.spec.providerID field to find the node in the cloud provider.
 func (i2 *HVInstancesV2) InstanceExists(ctx context.Context, node *corev1.Node) (bool, error) {
+	if node == nil {
+		return false, ErrNodeIsNil
+	}
 	deviceID, err := getHivelocityDeviceIDFromNode(node)
 	if err != nil {
-		return false, fmt.Errorf("failed to get deviceID from node %s: %w", node.ObjectMeta.Name, err)
+		return false, fmt.Errorf("InstanceExists(): getHivelocityDeviceIDFromNode() failed: %w", err)
 	}
 	_, err = i2.client.GetBareMetalDevice(ctx, deviceID)
 	if errors.Is(err, client.ErrNoSuchDevice) {
 		return false, nil
 	}
 	if err != nil {
-		return false, fmt.Errorf("InstanceExists: %q: %w", deviceID, err)
+		return false, fmt.Errorf("InstanceExists(): GetBareMetalDevice() failed. deviceID %d: %w", deviceID, err)
 	}
 	return true, nil
 }
@@ -82,16 +85,24 @@ func (i2 *HVInstancesV2) InstanceExists(ctx context.Context, node *corev1.Node) 
 // ErrUnknownPowerStatus .
 var ErrUnknownPowerStatus = errors.New("unknown PowerStatus")
 
+// ErrNodeIsNil .
+var ErrNodeIsNil = errors.New("node is nil")
+
 // InstanceShutdown returns true if the instance is shutdown according to the cloud provider.
 // Use the node.name or node.spec.providerID field to find the node in the cloud provider.
 func (i2 *HVInstancesV2) InstanceShutdown(ctx context.Context, node *corev1.Node) (bool, error) {
+	if node == nil {
+		return false, ErrNodeIsNil
+	}
 	deviceID, err := getHivelocityDeviceIDFromNode(node)
 	if err != nil {
-		return false, fmt.Errorf("failed to get deviceID from node %s: %w", node.ObjectMeta.Name, err)
+		return false, fmt.Errorf("InstanceShutdown(): getHivelocityDeviceIDFromNode() failed. node %s: %w",
+			node.GetName(), err)
 	}
 	device, err := i2.client.GetBareMetalDevice(ctx, deviceID)
 	if err != nil {
-		return false, fmt.Errorf("InstanceShutdown: deviceID %d: %w", deviceID, err)
+		return false, fmt.Errorf("InstanceShutdown(): GetBareMetalDevice() failed. deviceID %d, node %s: %w",
+			deviceID, node.GetName(), err)
 	}
 	switch device.PowerStatus {
 	case "ON":
@@ -99,8 +110,8 @@ func (i2 *HVInstancesV2) InstanceShutdown(ctx context.Context, node *corev1.Node
 	case "OFF":
 		return true, nil
 	default:
-		return false, fmt.Errorf("device with ID %q has unknown PowerStatus %q: %w",
-			deviceID, device.PowerStatus, ErrUnknownPowerStatus)
+		return false, fmt.Errorf("InstanceShutdown(): deviceID %d, node %s: unknown PowerStatus %q: %w",
+			deviceID, node.GetName(), device.PowerStatus, ErrUnknownPowerStatus)
 	}
 }
 
@@ -112,13 +123,18 @@ func (i2 *HVInstancesV2) InstanceShutdown(ctx context.Context, node *corev1.Node
 func (i2 *HVInstancesV2) InstanceMetadata(ctx context.Context, node *corev1.Node) (
 	*cloudprovider.InstanceMetadata, error,
 ) {
+	if node == nil {
+		return nil, ErrNodeIsNil
+	}
 	deviceID, err := getHivelocityDeviceIDFromNode(node)
 	if err != nil {
-		return nil, fmt.Errorf("failed to get deviceID from node %s: %w", node.ObjectMeta.Name, err)
+		return nil, fmt.Errorf("InstanceMetadata(): getHivelocityDeviceIDFromNode() failed. node %s: %w",
+			node.GetName(), err)
 	}
 	device, err := i2.client.GetBareMetalDevice(ctx, deviceID)
 	if err != nil {
-		return nil, fmt.Errorf("InstanceMetadata: deviceID %d: %w", deviceID, err)
+		return nil, fmt.Errorf("InstanceMetadata(): GetBareMetalDevice() failed. node %s, deviceID %d: %w",
+			node.GetName(), deviceID, err)
 	}
 
 	addr := corev1.NodeAddress{
@@ -129,7 +145,8 @@ func (i2 *HVInstancesV2) InstanceMetadata(ctx context.Context, node *corev1.Node
 	// HV tag. Example "instance-type=abc".
 	instanceType, err := hvutils.GetInstanceTypeFromTags(device.Tags)
 	if err != nil {
-		return nil, fmt.Errorf("InstanceMetadata: %v: %w", deviceID, err)
+		return nil, fmt.Errorf("InstanceMetadata(): GetInstanceTypeFromTags(). node %s, deviceID %d: %w",
+			node.GetName(), deviceID, err)
 	}
 
 	metaData := cloudprovider.InstanceMetadata{
