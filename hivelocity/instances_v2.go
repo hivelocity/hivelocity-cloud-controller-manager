@@ -64,6 +64,7 @@ var (
 
 // InstanceExists returns true if the instance for the given node exists according to the cloud provider.
 // Use the node.name or node.spec.providerID field to find the node in the cloud provider.
+// Implements cloudprovider.InstancesV2.InstanceExists.
 func (i2 *HVInstancesV2) InstanceExists(ctx context.Context, node *corev1.Node) (bool, error) {
 	if node == nil {
 		return false, ErrNodeIsNil
@@ -90,6 +91,7 @@ var ErrNodeIsNil = errors.New("node is nil")
 
 // InstanceShutdown returns true if the instance is shutdown according to the cloud provider.
 // Use the node.name or node.spec.providerID field to find the node in the cloud provider.
+// Implements cloudprovider.InstancesV2.InstanceShutdown.
 func (i2 *HVInstancesV2) InstanceShutdown(ctx context.Context, node *corev1.Node) (bool, error) {
 	if node == nil {
 		return false, ErrNodeIsNil
@@ -120,6 +122,7 @@ func (i2 *HVInstancesV2) InstanceShutdown(ctx context.Context, node *corev1.Node
 // Implementations should always check node.spec.providerID first when trying to discover the instance
 // for a given node. In cases where node.spec.providerID is empty, implementations can use other
 // properties of the node like its name, labels and annotations.
+// Implements cloudprovider.InstancesV2.InstanceMetadata.
 func (i2 *HVInstancesV2) InstanceMetadata(ctx context.Context, node *corev1.Node) (
 	*cloudprovider.InstanceMetadata, error,
 ) {
