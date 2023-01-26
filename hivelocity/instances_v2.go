@@ -67,14 +67,14 @@ var (
 func (i2 *HVInstancesV2) InstanceExists(ctx context.Context, node *corev1.Node) (bool, error) {
 	deviceID, err := getHivelocityDeviceIDFromNode(node)
 	if err != nil {
-		return false, fmt.Errorf("getHivelocityDeviceIDFromNode(node) failed: %w", err)
+		return false, err
 	}
 	_, err = i2.client.GetBareMetalDevice(ctx, deviceID)
 	if errors.Is(err, client.ErrNoSuchDevice) {
 		return false, nil
 	}
 	if err != nil {
-		return false, fmt.Errorf("i2.API.GetBareMetalDeviceIdResource(deviceID) failed: %w", err)
+		return false, err
 	}
 	return true, nil
 }

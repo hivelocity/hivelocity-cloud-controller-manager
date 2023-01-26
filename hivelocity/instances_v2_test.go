@@ -123,8 +123,7 @@ func Test_InstanceExists(t *testing.T) {
 		{
 			providerID: 999999999999999999,
 			wantBool:   false,
-			wantErrString: "getHivelocityDeviceIDFromNode(node) failed: ParseInt failed. " +
-				"node.Spec.ProviderID \"hivelocity://999999999999999999\": " +
+			wantErrString: "ParseInt failed. node.Spec.ProviderID \"hivelocity://999999999999999999\": " +
 				"failed to convert node.Spec.ProviderID",
 		},
 	}
