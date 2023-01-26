@@ -195,7 +195,7 @@ vet: ## Run go vet against code.
 
 .PHONY: generate-mocks
 generate-mocks: mockery
-	cd client; mockery --name=Client
+	cd client; mockery --name=Interface
 
 .PHONY: test
 test:

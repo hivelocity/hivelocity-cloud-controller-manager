@@ -73,7 +73,7 @@ func newNode(providerID string) *corev1.Node {
 	return &node
 }
 
-func standardMocks(m *mocks.Client) {
+func standardMocks(m *mocks.Interface) {
 	m.On("GetBareMetalDevice", mock.Anything, int32(14730)).Return(
 		&hv.BareMetalDevice{
 			Hostname:                 "",
@@ -102,7 +102,7 @@ func standardMocks(m *mocks.Client) {
 
 func Test_InstanceExists(t *testing.T) {
 	t.Parallel()
-	m := mocks.NewClient(t)
+	m := mocks.NewInterface(t)
 
 	ctx := context.Background()
 	standardMocks(m)
@@ -147,7 +147,7 @@ func Test_InstanceExists(t *testing.T) {
 
 func Test_InstanceShutdown(t *testing.T) {
 	t.Parallel()
-	m := mocks.NewClient(t)
+	m := mocks.NewInterface(t)
 	ctx := context.Background()
 	standardMocks(m)
 	i2 := NewHVInstanceV2(m)
@@ -185,7 +185,7 @@ func Test_InstanceShutdown(t *testing.T) {
 
 func Test_InstanceMetadata(t *testing.T) {
 	t.Parallel()
-	m := mocks.NewClient(t)
+	m := mocks.NewInterface(t)
 	ctx := context.Background()
 	standardMocks(m)
 	i2 := NewHVInstanceV2(m)
