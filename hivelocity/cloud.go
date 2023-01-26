@@ -15,7 +15,6 @@ limitations under the License.
 */
 
 // Package hivelocity implements the cloud controller manager.
-// The ccm is needed for cluster-api-provider-hivelocity
 // The interfaces are from: https://github.com/kubernetes/cloud-provider
 package hivelocity
 
@@ -92,7 +91,7 @@ func (c *cloud) Clusters() (cloudprovider.Clusters, bool) { //nolint:ireturn // 
 }
 
 func (c *cloud) Routes() (cloudprovider.Routes, bool) { //nolint:ireturn // implements cloudprovider.Interface
-	return nil, false
+	return nil, false // TODO: Will we implement this optional method?
 }
 
 func (c *cloud) ProviderName() string {
@@ -101,6 +100,8 @@ func (c *cloud) ProviderName() string {
 
 // HasClusterID is not implemented.
 func (c *cloud) HasClusterID() bool {
+	// TODO: The meaning if this method is unclear.
+	// Waiting for clarification: https://github.com/kubernetes/cloud-provider/issues/64
 	return true
 }
 
