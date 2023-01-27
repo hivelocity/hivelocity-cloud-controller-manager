@@ -47,7 +47,8 @@ func NewHVInstanceV2(c client.Interface) *HVInstancesV2 {
 func getHivelocityDeviceIDFromNode(node *corev1.Node) (int32, error) {
 	providerPrefix := providerName + "://"
 	if !strings.HasPrefix(node.Spec.ProviderID, providerPrefix) {
-		return 0, fmt.Errorf("node: %s, ProviderID: %q: %w", node.GetName(), node.Spec.ProviderID, errMissingProviderPrefix)
+		return 0, fmt.Errorf("node: %s, ProviderID: %q: %w", node.GetName(), node.Spec.ProviderID,
+			errMissingProviderPrefix)
 	}
 	deviceID, err := strconv.ParseInt(strings.TrimPrefix(node.Spec.ProviderID, providerPrefix), 10, 32)
 	if err != nil {

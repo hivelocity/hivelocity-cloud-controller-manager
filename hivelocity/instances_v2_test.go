@@ -30,6 +30,12 @@ import (
 	cloudprovider "k8s.io/cloud-provider"
 )
 
+const (
+	dummyDeviceID    = 12345
+	unknownDeviceID  = 9999999
+	invalidDevicdeID = 999999999999999999
+)
+
 func Test_getHivelocityDeviceIDFromNode(t *testing.T) {
 	t.Parallel()
 	tests := []struct {
@@ -45,7 +51,7 @@ func Test_getHivelocityDeviceIDFromNode(t *testing.T) {
 		},
 		{
 			providerID:    "hivelocity://12345",
-			wantDeviceID:  12345,
+			wantDeviceID:  dummyDeviceID,
 			wantErrString: "",
 		},
 	}
@@ -74,14 +80,14 @@ func newNode(providerID string) *corev1.Node {
 }
 
 func standardMocks(m *mocks.Interface) {
-	m.On("GetBareMetalDevice", mock.Anything, int32(14730)).Return(
+	m.On("GetBareMetalDevice", mock.Anything, int32(dummyDeviceID)).Return(
 		&hv.BareMetalDevice{
 			Hostname:                 "",
 			PrimaryIp:                "66.165.243.74",
 			CustomIPXEScriptURL:      "",
 			LocationName:             "LAX2",
 			ServiceId:                0,
-			DeviceId:                 14730,
+			DeviceId:                 dummyDeviceID,
 			ProductName:              "",
 			VlanId:                   0,
 			Period:                   "",
@@ -96,7 +102,7 @@ func standardMocks(m *mocks.Interface) {
 		},
 		nil)
 
-	m.On("GetBareMetalDevice", mock.Anything, int32(9999999)).Return(
+	m.On("GetBareMetalDevice", mock.Anything, int32(unknownDeviceID)).Return(
 		nil, client.ErrNoSuchDevice)
 }
 
@@ -114,17 +120,17 @@ func Test_InstanceExists(t *testing.T) {
 		wantErrString string
 	}{
 		{
-			providerID:    14730,
+			providerID:    dummyDeviceID,
 			wantBool:      true,
 			wantErrString: "",
 		},
 		{
-			providerID:    9999999,
+			providerID:    unknownDeviceID,
 			wantBool:      false,
 			wantErrString: "",
 		},
 		{
-			providerID: 999999999999999999,
+			providerID: invalidDevicdeID,
 			wantBool:   false,
 			wantErrString: "InstanceExists(): getHivelocityDeviceIDFromNode() " +
 				"failed: node: myNode, ProviderID \"hivelocity://999999999999999999\": " +
@@ -158,12 +164,12 @@ func Test_InstanceShutdown(t *testing.T) {
 		wantErrString string
 	}{
 		{
-			providerID:    14730,
+			providerID:    dummyDeviceID,
 			wantBool:      false,
 			wantErrString: "",
 		},
 		{
-			providerID: 9999999,
+			providerID: unknownDeviceID,
 			wantBool:   false,
 			wantErrString: "InstanceShutdown(): GetBareMetalDevice() failed. " +
 				"deviceID 9999999, node myNode: no such device",
@@ -195,9 +201,9 @@ func Test_InstanceMetadata(t *testing.T) {
 		wantErrString string
 	}{
 		{
-			providerID: 14730,
+			providerID: dummyDeviceID,
 			wantMetaData: &cloudprovider.InstanceMetadata{
-				ProviderID: "14730",
+				ProviderID: fmt.Sprint(dummyDeviceID),
 				NodeAddresses: []corev1.NodeAddress{
 					{
 						Type:    corev1.NodeAddressType("ExternalIP"),
@@ -211,7 +217,7 @@ func Test_InstanceMetadata(t *testing.T) {
 			wantErrString: "",
 		},
 		{
-			providerID:   9999999,
+			providerID:   unknownDeviceID,
 			wantMetaData: nil,
 			wantErrString: "InstanceMetadata(): GetBareMetalDevice() failed. " +
 				"node myNode, deviceID 9999999: no such device",
