@@ -22,6 +22,11 @@ SHELL = /usr/bin/env bash -o pipefail
 
 .DEFAULT_GOAL:=help
 
+# Directories.
+ROOT_DIR:=$(shell dirname $(realpath $(lastword $(MAKEFILE_LIST))))
+TOOLS_DIR := $(realpath ../../hack/tools)
+TOOLS_BIN_DIR := $(TOOLS_DIR)/bin
+BIN_DIR := bin
 #
 # Directories.
 #
@@ -37,6 +42,7 @@ export PATH := $(abspath $(TOOLS_BIN_DIR)):$(PATH)
 # Tooling Binaries.
 #
 GOLANGCI_LINT := $(abspath $(TOOLS_BIN_DIR)/golangci-lint)
+MOCKERY := $(abspath $(TOOLS_BIN_DIR)/mockery)
 
 #
 # Container related variables. Releases should modify and double check these vars.
@@ -80,8 +86,6 @@ $(GOLANGCI_LINT): .github/workflows/pr-golangci-lint.yml # Download golanci-lint
 		$(shell cat .github/workflows/pr-golangci-lint.yml | grep "\<version:\>" | sed 's/.*version: //')
 
 
-mockery:
-	go install github.com/vektra/mockery/v2@v2.16.0
 
 ##@ Generate / Manifests
 
@@ -117,6 +121,7 @@ verify: lint $(addprefix verify-,$(ALL_VERIFY_CHECKS)) ## Run all verify-* targe
 
 .PHONY: verify-modules
 verify-modules: modules  ## Verify go modules are up to date
+	echo TOOLS_DIR = $TOOLS_DIR
 	@if !(git diff --quiet HEAD -- go.sum go.mod $(TOOLS_DIR)/go.mod $(TOOLS_DIR)/go.sum $(TEST_DIR)/go.mod $(TEST_DIR)/go.sum); then \
 		git diff; \
 		echo "go module files are out of date"; exit 1; \
