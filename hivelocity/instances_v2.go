@@ -20,6 +20,7 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"math"
 	"strconv"
 	"strings"
 
@@ -50,8 +51,8 @@ func getHivelocityDeviceIDFromNode(node *corev1.Node) (int32, error) {
 		return 0, fmt.Errorf("node: %s, ProviderID: %q: %w", node.GetName(), node.Spec.ProviderID,
 			errMissingProviderPrefix)
 	}
-	deviceID, err := strconv.ParseInt(strings.TrimPrefix(node.Spec.ProviderID, providerPrefix), 10, 32)
-	if err != nil {
+	deviceID, err := strconv.Atoi(strings.TrimPrefix(node.Spec.ProviderID, providerPrefix))
+	if err != nil || deviceID < 0 || deviceID > math.MaxInt32 {
 		return 0, fmt.Errorf("node: %s, ProviderID %q: %w",
 			node.GetName(), node.Spec.ProviderID, errFailedToConvertProviderID)
 	}
