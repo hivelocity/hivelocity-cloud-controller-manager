@@ -27,12 +27,6 @@ fi
 # shellcheck disable=SC2128
 SCRIPT_DIR="$(cd "$(dirname "$(readlinkf "$BASH_SOURCE")")" ; pwd)"
 
-# We assume the link to the script ( {ensure,verify}-boilerplate.sh ) to be
-# in a directory 2 levels down from the repo root, e.g. in
-#   <root>/repo-infra/verify/verify-boilerplate.sh
-# Alternatively, you can set the project root by setting the variable
-# `REPO_ROOT`.
-#
 # shellcheck disable=SC2128
 : "${REPO_ROOT:="$(cd "${SCRIPT_DIR}/.." ; pwd)"}"
 

@@ -1,16 +1,20 @@
 module github.com/hivelocity/hivelocity-cloud-controller-manager
 
-go 1.18
+go 1.19
 
 require (
 	github.com/hivelocity/hivelocity-client-go v0.0.0-20230105153629-6ffe6f3d40bb
-	github.com/prometheus/client_golang v1.14.0
 	github.com/stretchr/testify v1.8.0
 	k8s.io/api v0.26.0
 	k8s.io/apimachinery v0.26.0
 	k8s.io/cloud-provider v0.26.0
 	k8s.io/component-base v0.26.0
 	k8s.io/klog/v2 v2.80.1
+)
+
+require (
+	github.com/prometheus/client_golang v1.14.0 // indirect
+	github.com/stretchr/objx v0.4.0 // indirect
 )
 
 require (
@@ -47,7 +51,6 @@ require (
 	github.com/grpc-ecosystem/grpc-gateway/v2 v2.7.0 // indirect
 	github.com/imdario/mergo v0.3.6 // indirect
 	github.com/inconshreveable/mousetrap v1.0.1 // indirect
-	github.com/joho/godotenv v1.4.0
 	github.com/josharian/intern v1.0.0 // indirect
 	github.com/json-iterator/go v1.1.12 // indirect
 	github.com/mailru/easyjson v0.7.6 // indirect
@@ -83,7 +86,7 @@ require (
 	golang.org/x/crypto v0.1.0 // indirect
 	golang.org/x/net v0.3.1-0.20221206200815-1e63c2f08a10 // indirect
 	golang.org/x/oauth2 v0.3.0 // indirect
-	golang.org/x/sync v0.0.0-20220722155255-886fb9371eb4 // indirect
+	golang.org/x/sync v0.1.0 // indirect
 	golang.org/x/sys v0.3.0 // indirect
 	golang.org/x/term v0.3.0 // indirect
 	golang.org/x/text v0.5.0 // indirect
