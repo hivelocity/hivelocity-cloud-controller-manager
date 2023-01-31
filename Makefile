@@ -17,6 +17,8 @@
 # This is a requirement for 'setup-envtest.sh' in the test target.
 # Options are set to exit when a recipe line exits non-zero or a piped command fails.
 
+MAKEFLAGS=--warn-undefined-variables
+
 SHELL = /usr/bin/env bash -o pipefail
 .SHELLFLAGS = -ec
 
@@ -31,13 +33,13 @@ BIN_DIR := bin
 TEST_DIR := test
 TOOLS_DIR := hack/tools
 TOOLS_BIN_DIR := $(TOOLS_DIR)/$(BIN_DIR)
-export PATH := $(abspath $(TOOLS_BIN_DIR)):$(PATH)
+export PATH := $(abspath $(TOOLS_BIN_DIR)):$(abspath node_modules/.bin):$(PATH)
 
 #
 # Tooling Binaries.
 #
 GOLANGCI_LINT := $(abspath $(TOOLS_BIN_DIR)/golangci-lint)
-
+PRETTIER := $(abspath node_modules/.bin/prettier)
 #
 # Container related variables. Releases should modify and double check these vars.
 #
@@ -74,10 +76,14 @@ help: ## Display this help.
 ##@ Binaries / Software
 
 golangci-lint: $(GOLANGCI_LINT) ## Build a local copy of golangci-lint
-$(GOLANGCI_LINT): .github/workflows/pr-golangci-lint.yml # Download golanci-lint using hack script into tools folder.
-	hack/ensure-golangci-lint.sh \
-		-b $(TOOLS_DIR)/$(BIN_DIR) \
-		$(shell cat .github/workflows/pr-golangci-lint.yml | grep "\<version:\>" | sed 's/.*version: //')
+$(GOLANGCI_LINT): # Download golanci-lint using hack script into tools folder.
+	hack/ensure-golangci-lint.sh -b $(TOOLS_DIR)/$(BIN_DIR)
+
+.PHONY: npm-install
+npm-install: 
+	npm ci --no-audit --no-fund
+
+$(PRETTIER): npm-install
 
 
 mockery:
@@ -89,9 +95,16 @@ mockery:
 generate: ## Run all generate-manifests, generate-go-deepcopyand generate-go-conversions targets
 	$(MAKE) generate-mocks
 
+.PHONY: ensure
+ensure: ensure-boilerplate ensure-prettier
+
 .PHONY: ensure-boilerplate
 ensure-boilerplate: ## Ensures that a boilerplate exists in each file by adding missing boilerplates
 	./hack/ensure-boilerplate.sh
+
+.PHONY: ensure-prettier
+ensure-prettier: $(PRETTIER)
+	$(PRETTIER) --write **/*.yaml **/*.yml
 
 ##@ Lint and Verify
 
@@ -108,7 +121,7 @@ lint: $(GOLANGCI_LINT) ## Lint Golang codebase
 lint-fix: $(GOLANGCI_LINT) ## Lint the Go codebase and run auto-fixers if supported by the linter.
 	GOLANGCI_LINT_EXTRA_ARGS=--fix $(MAKE) lint
 
-ALL_VERIFY_CHECKS = boilerplate shellcheck modules gen
+ALL_VERIFY_CHECKS = boilerplate shellcheck prettier modules gen 
 
 .PHONY: verify
 verify: lint $(addprefix verify-,$(ALL_VERIFY_CHECKS)) ## Run all verify-* targets
@@ -140,6 +153,10 @@ verify-boilerplate: ## Verify boilerplate text exists in each file
 .PHONY: verify-shellcheck
 verify-shellcheck: ## Verify shell files
 	./hack/verify-shellcheck.sh
+
+.PHONY: verify-prettier
+verify-prettier: $(PRETTIER)
+	$(PRETTIER) --check **/*.yaml **/*.yml
 
 ##@ Clean
 
