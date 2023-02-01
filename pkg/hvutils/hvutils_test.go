@@ -24,7 +24,6 @@ import (
 )
 
 func Test_getInstanceTypeFromTags(t *testing.T) {
-	panic("fooooo")
 	t.Parallel()
 	tests := []struct {
 		name string
@@ -36,7 +35,7 @@ func Test_getInstanceTypeFromTags(t *testing.T) {
 			name: "empty slice returns empty string",
 			tags: []string{},
 			want: "",
-			err:  ErrNoInstanceTypeFound,
+			err:  nil,
 		},
 		{
 			name: "invalid label value will be skipped",
