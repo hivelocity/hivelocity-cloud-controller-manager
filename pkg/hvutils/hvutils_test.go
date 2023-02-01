@@ -24,6 +24,7 @@ import (
 )
 
 func Test_getInstanceTypeFromTags(t *testing.T) {
+	panic("fooooo")
 	t.Parallel()
 	tests := []struct {
 		name string
