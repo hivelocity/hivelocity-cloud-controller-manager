@@ -1,0 +1,21 @@
+name: make verify
+
+on:
+  pull_request:
+    types: [opened, synchronize, reopened]
+    branches:
+      - main
+      - "releases/**"
+
+jobs:
+  make-verify:
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v3
+      - uses: actions/setup-go@v3
+        with:
+          go-version: "^1.19"
+
+      - name: make verify
+        run: make verify
