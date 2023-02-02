@@ -1,5 +1,5 @@
-# These linters are enforced via CI
-# See .golangci-suggestions.yaml for optional checks.
+# These linters are optional.
+# See .golangci.yaml for checks which are enforced via CI.
 linters:
   disable-all: true
   enable:
@@ -9,8 +9,11 @@ linters:
     - bodyclose
     - containedctx
     - contextcheck
+    - decorder
     - depguard
+    - dogsled
     - durationcheck
+    - exhaustruct
     - errcheck
     - errchkjson
     - errname
@@ -19,9 +22,12 @@ linters:
     - exportloopref
     - forcetypeassert
     - gci
+    - gochecknoglobals
+    - gochecknoinits
     - goconst
     - gocritic
     - godot
+    - godox
     - goerr113
     - gofmt
     - gofumpt
@@ -30,12 +36,16 @@ linters:
     - gosec
     - gosimple
     - govet
+    - ireturn
     - importas
+    - interfacebloat
     - ineffassign
     - loggercheck
     - makezero
     - misspell
+    - musttag
     - nakedret
+    - nestif
     - nilerr
     - nilnil
     - noctx
@@ -59,7 +69,6 @@ linters:
     - unused
     - wastedassign
     - whitespace
-    - wrapcheck
 
 linters-settings:
   decorder:
@@ -91,12 +100,20 @@ linters-settings:
       # Kubernetes
       - pkg: k8s.io/api/core/v1
         alias: corev1
+  interfacebloat:
+    # The maximum number of methods allowed for an interface.
+    # Default: 10
+    max: 5
   gofumpt:
     extra-rules: true
   nolintlint:
     allow-unused: false
     allow-leading-space: false
     require-specific: true
+  nestif:
+    # Minimal complexity of if statements to report.
+    # Default: 5
+    min-complexity: 4
   staticcheck:
     go: "1.19"
   stylecheck:
@@ -131,11 +148,10 @@ linters-settings:
             allowStrs: '""'
             allowInts: "0,1,2,10,32"
             ignoreFuncs: "Test*"
-
       # https://github.com/mgechev/revive/blob/master/RULES_DESCRIPTIONS.md#argument-limit
       - name: argument-limit
         severity: warning
-        disabled: true
+        disabled: false
         arguments: [4]
       # https://github.com/mgechev/revive/blob/master/RULES_DESCRIPTIONS.md#banned-characters
       - name: banned-characters
@@ -191,12 +207,12 @@ linters-settings:
       # https://github.com/mgechev/revive/blob/master/RULES_DESCRIPTIONS.md#line-length-limit
       - name: line-length-limit
         severity: warning
-        disabled: true
+        disabled: false
         arguments: [120]
       # https://github.com/mgechev/revive/blob/master/RULES_DESCRIPTIONS.md#max-public-structs
       - name: max-public-structs
         severity: warning
-        disabled: true
+        disabled: false
         arguments: [3]
       # https://github.com/mgechev/revive/blob/master/RULES_DESCRIPTIONS.md#string-format
       - name: string-format

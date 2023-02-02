@@ -45,8 +45,11 @@ var _ Interface = (*Client)(nil)
 var ErrNoSuchDevice = errors.New("no such device")
 
 // NewClient creates a struct which implements the Client interface.
-func NewClient(client *hv.APIClient) *Client {
-	return &Client{client: client}
+func NewClient(apiKey string) *Client {
+	config := hv.NewConfiguration()
+	config.AddDefaultHeader("X-API-KEY", apiKey)
+	apiClient := hv.NewAPIClient(config)
+	return &Client{client: apiClient}
 }
 
 // GetBareMetalDevice returns the device fetched via the Hivelocity API.

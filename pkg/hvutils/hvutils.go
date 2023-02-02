@@ -55,8 +55,11 @@ func GetInstanceTypeFromTags(tags []string) (string, error) {
 		return "", ErrNoInstanceTypeFound
 	}
 	if len(instanceTypes) > 1 {
-		return "", fmt.Errorf("[GetInstanceTypeFromTags] more than one instance type. instanceTypes %v: %w",
-			instanceTypes, ErrMoreThanOneTagFound)
+		return "", fmt.Errorf(
+			"[GetInstanceTypeFromTags] more than one instance type. instanceTypes %v: %w",
+			instanceTypes,
+			ErrMoreThanOneTagFound,
+		)
 	}
 	instanceType := instanceTypes[0]
 

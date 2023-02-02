@@ -23,7 +23,6 @@ import (
 	"io"
 	"os"
 
-	hv "github.com/hivelocity/hivelocity-client-go/client"
 	"github.com/hivelocity/hivelocity-cloud-controller-manager/client"
 	cloudprovider "k8s.io/cloud-provider"
 	"k8s.io/klog/v2"
@@ -31,7 +30,6 @@ import (
 
 // cloud implements cloudprovider.Interface for Hivelocity.
 type cloud struct {
-	client      *hv.APIClient
 	instancesV2 *HVInstancesV2
 }
 
@@ -57,16 +55,11 @@ func newCloud() (*cloud, error) {
 		return nil, errEnvVarMissing
 	}
 
-	apiClientConfig := hv.NewConfiguration()
-	apiClientConfig.AddDefaultHeader("X-API-KEY", apiKey)
-	apiClient := hv.NewAPIClient(apiClientConfig)
-
 	klog.Infof("Hivelocity cloud controller manager %s started\n", providerVersion)
 
-	i2 := newHVInstanceV2(client.NewClient(apiClient))
+	i2 := newHVInstanceV2(client.NewClient(apiKey))
 
 	return &cloud{
-		client:      apiClient,
 		instancesV2: i2,
 	}, nil
 }
@@ -76,34 +69,34 @@ func (*cloud) Initialize(cloudprovider.ControllerClientBuilder, <-chan struct{})
 }
 
 // Instances implements cloudprovider.Interface.Instances.
-func (*cloud) Instances() (cloudprovider.Instances, bool) { //nolint:ireturn // implements cloudprovider.Interface
+func (*cloud) Instances() (cloudprovider.Instances, bool) {
 	// we only implement InstancesV2
 	return nil, false
 }
 
 // InstancesV2 implements cloudprovider.Interface.InstancesV2.
-func (c *cloud) InstancesV2() (cloudprovider.InstancesV2, bool) { //nolint:ireturn // implements cloudprovider.Interface
+func (c *cloud) InstancesV2() (cloudprovider.InstancesV2, bool) {
 	return c.instancesV2, true
 }
 
 // Zones implements cloudprovider.Interface.Zones.
-func (*cloud) Zones() (cloudprovider.Zones, bool) { //nolint:ireturn // implements cloudprovider.Interface
+func (*cloud) Zones() (cloudprovider.Zones, bool) {
 	// we only implement InstancesV2
 	return nil, false
 }
 
 // LoadBalancer implements cloudprovider.Interface.LoadBalancer.
-func (c *cloud) LoadBalancer() (cloudprovider.LoadBalancer, bool) { //nolint:revive,ireturn // implements cloudprovider.Interface
+func (*cloud) LoadBalancer() (cloudprovider.LoadBalancer, bool) {
 	return nil, false // TODO: Up to now Hivelocity has not API for LoadBalancers.
 }
 
 // Clusters implements cloudprovider.Interface.Clusters.
-func (*cloud) Clusters() (cloudprovider.Clusters, bool) { //nolint:ireturn // implements cloudprovider.Interface
+func (*cloud) Clusters() (cloudprovider.Clusters, bool) {
 	return nil, false // TODO: Will we implement this optional method?
 }
 
 // Routes implements cloudprovider.Interface.Routes.
-func (*cloud) Routes() (cloudprovider.Routes, bool) { //nolint:ireturn // implements cloudprovider.Interface
+func (*cloud) Routes() (cloudprovider.Routes, bool) {
 	return nil, false // TODO: Will we implement this optional method?
 }
 
