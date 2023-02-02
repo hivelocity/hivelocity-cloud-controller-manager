@@ -24,6 +24,18 @@ import (
 	"k8s.io/apimachinery/pkg/util/validation"
 )
 
+var (
+
+	// ErrMoreThanOneTagFound gets returned if more than one instance-type tag was found via the HV API.
+	ErrMoreThanOneTagFound = fmt.Errorf("more than one instance-type tag found")
+
+	// ErrInvalidLabelValue gets returned if the HV tag contains a value which is an invalid K8s label.
+	ErrInvalidLabelValue = fmt.Errorf("invalid label value")
+
+	// ErrNoInstanceTypeFound gets returned if no instance-type tag was found via the HV API.
+	ErrNoInstanceTypeFound = fmt.Errorf("no instance-type tag found")
+)
+
 // GetInstanceTypeFromTags is a utility method to read the instance-type
 // from a slice of strings.
 // The slice is usually from the Hivelocity API of a device.
@@ -58,15 +70,3 @@ func GetInstanceTypeFromTags(tags []string) (string, error) {
 	}
 	return instanceType, nil
 }
-
-var (
-
-	// ErrMoreThanOneTagFound gets returned if more than one instance-type tag was found via the HV API.
-	ErrMoreThanOneTagFound = fmt.Errorf("more than one instance-type tag found")
-
-	// ErrInvalidLabelValue gets returned if the HV tag contains a value which is an invalid K8s label.
-	ErrInvalidLabelValue = fmt.Errorf("invalid label value")
-
-	// ErrNoInstanceTypeFound gets returned if no instance-type tag was found via the HV API.
-	ErrNoInstanceTypeFound = fmt.Errorf("no instance-type tag found")
-)

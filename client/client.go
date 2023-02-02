@@ -41,13 +41,13 @@ type Client struct {
 
 var _ Interface = (*Client)(nil)
 
+// ErrNoSuchDevice means that no device was found via the Hivelocity API.
+var ErrNoSuchDevice = errors.New("no such device")
+
 // NewClient creates a struct which implements the Client interface.
 func NewClient(client *hv.APIClient) *Client {
 	return &Client{client: client}
 }
-
-// ErrNoSuchDevice means that no device was found via the Hivelocity API.
-var ErrNoSuchDevice = errors.New("no such device")
 
 // GetBareMetalDevice returns the device fetched via the Hivelocity API.
 func (c *Client) GetBareMetalDevice(

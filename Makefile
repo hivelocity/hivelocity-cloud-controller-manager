@@ -131,7 +131,7 @@ verify: lint $(addprefix verify-,$(ALL_VERIFY_CHECKS)) ## Run all verify-* targe
 .PHONY: verify-modules
 verify-modules: modules  ## Verify go modules are up to date
 	@if !(git diff --quiet HEAD -- go.sum go.mod $(TOOLS_DIR)/go.mod $(TOOLS_DIR)/go.sum $(TEST_DIR)/go.mod $(TEST_DIR)/go.sum); then \
-		git diff; \
+		git diff | cat; \
 		echo "go module files are out of date"; exit 1; \
 	fi
 	@if (find . -name 'go.mod' | xargs -n1 grep -q -i 'k8s.io/client-go.*+incompatible'); then \
@@ -142,7 +142,7 @@ verify-modules: modules  ## Verify go modules are up to date
 .PHONY: verify-gen
 verify-gen: generate  ## Verfiy go generated files are up to date
 	@if !(git diff --quiet HEAD); then \
-		git diff; \
+		git diff | cat; \
 		echo "generated files are out of date, run make generate"; exit 1; \
 	fi
 

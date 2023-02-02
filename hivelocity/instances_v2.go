@@ -36,6 +36,18 @@ type HVInstancesV2 struct {
 
 var _ cloudprovider.InstancesV2 = &HVInstancesV2{}
 
+var errUnknownPowerStatus = errors.New("unknown PowerStatus")
+
+var errNodeIsNil = errors.New("node is nil")
+
+var (
+	errMissingProviderPrefix = fmt.Errorf(
+		"missing prefix %q in node.Spec.ProviderID",
+		providerName,
+	)
+	errFailedToConvertProviderID = fmt.Errorf("failed to convert node.Spec.ProviderID")
+)
+
 // newHVInstanceV2 creates a new HVInstancesV2 struct.
 func newHVInstanceV2(c client.Interface) *HVInstancesV2 {
 	return &HVInstancesV2{client: c}
@@ -70,14 +82,6 @@ func getHivelocityDeviceIDFromNode(node *corev1.Node) (int32, error) {
 	return int32(deviceID), nil
 }
 
-var (
-	errMissingProviderPrefix = fmt.Errorf(
-		"missing prefix %q in node.Spec.ProviderID",
-		providerName,
-	)
-	errFailedToConvertProviderID = fmt.Errorf("failed to convert node.Spec.ProviderID")
-)
-
 // InstanceExists returns true if the instance for the given node exists according to the cloud provider.
 // Use the node.name or node.spec.providerID field to find the node in the cloud provider.
 // Implements cloudprovider.InstancesV2.InstanceExists.
@@ -107,10 +111,6 @@ func (i2 *HVInstancesV2) InstanceExists(ctx context.Context, node *corev1.Node) 
 	}
 	return true, nil
 }
-
-var errUnknownPowerStatus = errors.New("unknown PowerStatus")
-
-var errNodeIsNil = errors.New("node is nil")
 
 // InstanceShutdown returns true if the instance is shutdown according to the cloud provider.
 // Use the node.name or node.spec.providerID field to find the node in the cloud provider.

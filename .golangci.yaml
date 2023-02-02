@@ -7,6 +7,7 @@ linters:
     - bodyclose
     - containedctx
     - contextcheck
+    - decorder
     - depguard
     - dogsled
     - durationcheck
@@ -62,6 +63,24 @@ linters:
     - whitespace
 
 linters-settings:
+  decorder:
+    # Required order of `type`, `const`, `var` and `func` declarations inside a file.
+    # Default: types before constants before variables before functions.
+    dec-order:
+      - type
+      - const
+      - var
+      - func
+    # If true, order of declarations is not checked at all.
+    # Default: true (disabled)
+    disable-dec-order-check: false
+    # If true, `init` func can be anywhere in file (does not have to be declared before all other functions).
+    # Default: true (disabled)
+    disable-init-func-first-check: false
+    # If true, multiple global `type`, `const` and `var` declarations are allowed.
+    # Default: true (disabled)
+    disable-dec-num-check: true
+
   godot:
     #   declarations - for top level declaration comments (default);
     #   toplevel     - for top level comments;

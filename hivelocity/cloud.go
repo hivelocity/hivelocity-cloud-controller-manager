@@ -29,19 +29,27 @@ import (
 	"k8s.io/klog/v2"
 )
 
-const (
-	hivelocityAPIKeyENVVar = "HIVELOCITY_API_KEY" // #nosec G101
-	providerName           = "hivelocity"
-	providerVersion        = "v0.0.1"
-)
-
 // cloud implements cloudprovider.Interface for Hivelocity.
 type cloud struct {
 	client      *hv.APIClient
 	instancesV2 *HVInstancesV2
 }
 
+const (
+	hivelocityAPIKeyENVVar = "HIVELOCITY_API_KEY" // #nosec G101
+	providerName           = "hivelocity"
+	providerVersion        = "v0.0.1"
+)
+
 var _ cloudprovider.Interface = (*cloud)(nil)
+
+var errEnvVarMissing = fmt.Errorf("environment variable %q is missing or empty", hivelocityAPIKeyENVVar)
+
+func init() {
+	cloudprovider.RegisterCloudProvider(providerName, func(config io.Reader) (cloudprovider.Interface, error) {
+		return newCloud()
+	})
+}
 
 func newCloud() (*cloud, error) {
 	apiKey := os.Getenv(hivelocityAPIKeyENVVar)
@@ -62,8 +70,6 @@ func newCloud() (*cloud, error) {
 		instancesV2: i2,
 	}, nil
 }
-
-var errEnvVarMissing = fmt.Errorf("environment variable %q is missing or empty", hivelocityAPIKeyENVVar)
 
 // Initialize implements cloudprovider.Interface.Initialize.
 func (*cloud) Initialize(cloudprovider.ControllerClientBuilder, <-chan struct{}) {
@@ -111,10 +117,4 @@ func (*cloud) HasClusterID() bool {
 	// TODO: The meaning if this method is unclear.
 	// Waiting for clarification: https://github.com/kubernetes/cloud-provider/issues/64
 	return true
-}
-
-func init() {
-	cloudprovider.RegisterCloudProvider(providerName, func(config io.Reader) (cloudprovider.Interface, error) {
-		return newCloud()
-	})
 }
