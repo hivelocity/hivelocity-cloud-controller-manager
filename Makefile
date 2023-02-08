@@ -55,6 +55,7 @@ PLATFORMS  = linux/amd64,linux/arm64
 export DOCKER_CLI_EXPERIMENTAL := enabled
 
 
+.PHONY: all
 all: help
 
 ##@ General
@@ -115,7 +116,17 @@ modules: ## Runs go mod to ensure modules are up to date.
 
 .PHONY: lint
 lint: $(GOLANGCI_LINT) ## Lint Golang codebase
-	$(GOLANGCI_LINT) run -v $(GOLANGCI_LINT_EXTRA_ARGS)
+	$(GOLANGCI_LINT) run -v
+
+.PHONY: lint-suggestions
+lint-suggestions: $(GOLANGCI_LINT) ## Show optional suggestions for the Golang codebase
+	## TODO: only show warnings about the new code.
+	## https://golangci-lint.run/usage/faq/#how-to-integrate-golangci-lint-into-large-project-with-thousands-of-issues
+	## TODO: does not work for me:
+	## https://github.com/golangci/golangci/issues/55
+	$(GOLANGCI_LINT) run -v -c .golangci-suggestions.yaml --new-from-rev=`git merge-base main HEAD`
+## --new=true
+## --new-from-rev=HEAD~2
 
 .PHONY: lint-fix
 lint-fix: $(GOLANGCI_LINT) ## Lint the Go codebase and run auto-fixers if supported by the linter.
@@ -124,9 +135,12 @@ lint-fix: $(GOLANGCI_LINT) ## Lint the Go codebase and run auto-fixers if suppor
 ALL_VERIFY_CHECKS = boilerplate shellcheck prettier modules gen 
 
 .PHONY: verify
-verify: lint $(addprefix verify-,$(ALL_VERIFY_CHECKS)) ## Run all verify-* targets
+verify: lint checkmake $(addprefix verify-,$(ALL_VERIFY_CHECKS)) ## Run all verify-* targets
 	@echo "All verify checks passed, congrats!"
 
+.PHONY: checkmake
+checkmake:
+	go run github.com/mrtazz/checkmake/cmd/checkmake@0.2.1 Makefile
 
 .PHONY: verify-modules
 verify-modules: modules  ## Verify go modules are up to date
