@@ -171,14 +171,7 @@ linters-settings:
         severity: warning
         disabled: false
         arguments:
-          - [
-              "call-chain",
-              "loop",
-              "method-call",
-              "recover",
-              "immediate-recover",
-              "return",
-            ]
+          - ["call-chain", "loop", "method-call", "recover", "immediate-recover", "return"]
       # https://github.com/mgechev/revive/blob/master/RULES_DESCRIPTIONS.md#exported
       - name: exported
         severity: warning

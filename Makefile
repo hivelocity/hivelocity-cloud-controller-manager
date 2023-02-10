@@ -39,7 +39,6 @@ export PATH := $(abspath $(TOOLS_BIN_DIR)):$(abspath node_modules/.bin):$(PATH)
 # Tooling Binaries.
 #
 GOLANGCI_LINT := $(abspath $(TOOLS_BIN_DIR)/golangci-lint)
-PRETTIER := $(abspath node_modules/.bin/prettier)
 #
 # Container related variables. Releases should modify and double check these vars.
 #
@@ -80,13 +79,6 @@ golangci-lint: $(GOLANGCI_LINT) ## Build a local copy of golangci-lint
 $(GOLANGCI_LINT): # Download golanci-lint using hack script into tools folder.
 	hack/ensure-golangci-lint.sh -b $(TOOLS_DIR)/$(BIN_DIR)
 
-.PHONY: npm-install
-npm-install: 
-	npm ci --no-audit --no-fund
-
-$(PRETTIER): npm-install
-
-
 mockery:
 	go install github.com/vektra/mockery/v2@v2.16.0
 
@@ -97,15 +89,11 @@ generate: ## Run all generate-manifests, generate-go-deepcopyand generate-go-con
 	$(MAKE) generate-mocks
 
 .PHONY: ensure
-ensure: ensure-boilerplate ensure-prettier
+ensure: ensure-boilerplate
 
 .PHONY: ensure-boilerplate
 ensure-boilerplate: ## Ensures that a boilerplate exists in each file by adding missing boilerplates
 	./hack/ensure-boilerplate.sh
-
-.PHONY: ensure-prettier
-ensure-prettier: $(PRETTIER)
-	$(PRETTIER) --write **/*.yaml **/*.yml
 
 ##@ Lint and Verify
 
@@ -115,7 +103,7 @@ modules: ## Runs go mod to ensure modules are up to date.
 	cd $(TOOLS_DIR); go mod tidy
 
 .PHONY: lint
-lint: $(GOLANGCI_LINT) ## Lint Golang codebase
+lint: $(GOLANGCI_LINT) lint-yaml
 	$(GOLANGCI_LINT) run -v
 
 .PHONY: lint-suggestions
@@ -132,7 +120,7 @@ lint-suggestions: $(GOLANGCI_LINT) ## Show optional suggestions for the Golang c
 lint-fix: $(GOLANGCI_LINT) ## Lint the Go codebase and run auto-fixers if supported by the linter.
 	GOLANGCI_LINT_EXTRA_ARGS=--fix $(MAKE) lint
 
-ALL_VERIFY_CHECKS = boilerplate shellcheck prettier modules gen 
+ALL_VERIFY_CHECKS = boilerplate shellcheck modules gen 
 
 .PHONY: verify
 verify: lint checkmake $(addprefix verify-,$(ALL_VERIFY_CHECKS)) ## Run all verify-* targets
@@ -168,9 +156,10 @@ verify-boilerplate: ## Verify boilerplate text exists in each file
 verify-shellcheck: ## Verify shell files
 	./hack/verify-shellcheck.sh
 
-.PHONY: verify-prettier
-verify-prettier: $(PRETTIER)
-	$(PRETTIER) --check **/*.yaml **/*.yml
+.PHONY: lint-yaml
+lint-yaml: ## Lint YAML files
+	pip install yamllint
+	yamllint -c .github/linters/yaml-lint.yaml --strict .
 
 ##@ Clean
 
