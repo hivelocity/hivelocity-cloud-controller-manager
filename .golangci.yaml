@@ -58,7 +58,6 @@ linters:
     - usestdlibvars
     - unused
     - wastedassign
-    - whitespace
     - wrapcheck
 
 linters-settings:

@@ -68,7 +68,6 @@ linters:
     - usestdlibvars
     - unused
     - wastedassign
-    - whitespace
 
 linters-settings:
   decorder:
