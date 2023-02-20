@@ -14,7 +14,6 @@ linters:
     - dogsled
     - durationcheck
     - exhaustruct
-    - errcheck
     - errchkjson
     - errname
     - errorlint
@@ -68,6 +67,8 @@ linters:
     - usestdlibvars
     - unused
     - wastedassign
+    - wrapcheck
+
 
 linters-settings:
   decorder:
