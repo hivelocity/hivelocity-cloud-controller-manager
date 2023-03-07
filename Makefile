@@ -80,7 +80,7 @@ $(GOLANGCI_LINT): # Download golanci-lint using hack script into tools folder.
 	hack/ensure-golangci-lint.sh -b $(TOOLS_DIR)/$(BIN_DIR)
 
 mockery:
-	go install github.com/vektra/mockery/v2@v2.16.0
+	go install github.com/vektra/mockery/v2@v2.21.1
 
 ##@ Generate / Manifests
 
@@ -120,7 +120,7 @@ lint-suggestions: $(GOLANGCI_LINT) ## Show optional suggestions for the Golang c
 lint-fix: $(GOLANGCI_LINT) ## Lint the Go codebase and run auto-fixers if supported by the linter.
 	GOLANGCI_LINT_EXTRA_ARGS=--fix $(MAKE) lint
 
-ALL_VERIFY_CHECKS = boilerplate shellcheck modules gen 
+ALL_VERIFY_CHECKS = boilerplate shellcheck modules gen
 
 .PHONY: verify
 verify: lint checkmake $(addprefix verify-,$(ALL_VERIFY_CHECKS)) ## Run all verify-* targets
