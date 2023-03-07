@@ -1,11 +1,11 @@
-name: Build Caphv Image
+name: Build ccm-hivelocity Image
 # yamllint disable rule:line-length
 on: # yamllint disable-line rule:truthy
   push:
     branches:
       - main
 env:
-  IMAGE_NAME: caphv-staging
+  IMAGE_NAME: ccm-hivelocity-staging
   REGISTRY: ghcr.io/hivelocity
   metadata_flavor: latest=true
   metadata_tags: type=sha,prefix=sha-,format=short
@@ -53,7 +53,7 @@ jobs:
         with:
           provenance: false
           context: .
-          file: ./images/caphv/Dockerfile
+          file: ./images/ccm-hivelocity/Dockerfile
           push: true
           tags: ${{ steps.meta.outputs.tags }}
           labels: ${{ steps.meta.outputs.labels }}
@@ -63,19 +63,19 @@ jobs:
         env:
           COSIGN_EXPERIMENTAL: "true"
         run: |
-          cosign sign --yes ghcr.io/hivelocity/caphv-staging@${{ steps.docker_build_release.outputs.digest }}
+          cosign sign --yes ghcr.io/hivelocity/ccm-hivelocity-staging@${{ steps.docker_build_release.outputs.digest }}
 
       - name: Image Releases digests
         shell: bash
         run: |
           mkdir -p image-digest/
-          echo "ghcr.io/hivelocity/caphv-staging:{{ steps.meta.outputs.tags }}@${{ steps.docker_build_release.outputs.digest }}" >> image-digest/caphv.txt
+          echo "ghcr.io/hivelocity/ccm-hivelocity-staging:{{ steps.meta.outputs.tags }}@${{ steps.docker_build_release.outputs.digest }}" >> image-digest/ccm-hivelocity.txt
 
       # Upload artifact digests
       - name: Upload artifact digests
         uses: actions/upload-artifact@0b7f8abb1508181956e8e162db84b466c27e18ce # v3.1.2
         with:
-          name: image-digest caphv
+          name: image-digest ccm-hivelocity
           path: image-digest
           retention-days: 90
 
