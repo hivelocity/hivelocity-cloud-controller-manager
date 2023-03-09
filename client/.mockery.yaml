@@ -1,0 +1,3 @@
+keeptree: False
+name: Interface
+outpkg: mocks

@@ -79,9 +79,6 @@ golangci-lint: $(GOLANGCI_LINT) ## Build a local copy of golangci-lint
 $(GOLANGCI_LINT): # Download golanci-lint using hack script into tools folder.
 	hack/ensure-golangci-lint.sh -b $(TOOLS_DIR)/$(BIN_DIR)
 
-mockery:
-	go install github.com/vektra/mockery/v2@v2.21.1
-
 ##@ Generate / Manifests
 
 .PHONY: generate
@@ -103,7 +100,7 @@ modules: ## Runs go mod to ensure modules are up to date.
 	cd $(TOOLS_DIR); go mod tidy
 
 .PHONY: lint
-lint: $(GOLANGCI_LINT) lint-yaml
+lint: $(GOLANGCI_LINT) lint-yaml lint-helm-charts
 	$(GOLANGCI_LINT) run -v
 
 .PHONY: lint-suggestions
@@ -125,6 +122,10 @@ ALL_VERIFY_CHECKS = boilerplate shellcheck modules gen
 .PHONY: verify
 verify: lint checkmake $(addprefix verify-,$(ALL_VERIFY_CHECKS)) ## Run all verify-* targets
 	@echo "All verify checks passed, congrats!"
+
+.PHONY: lint-helm-charts
+lint-helm-charts:
+	helm template charts/ccm-hivelocity/| go run github.com/yannh/kubeconform/cmd/kubeconform@latest
 
 .PHONY: checkmake
 checkmake:
@@ -158,7 +159,7 @@ verify-shellcheck: ## Verify shell files
 
 .PHONY: lint-yaml
 lint-yaml: ## Lint YAML files
-	pip install yamllint
+	pip install --quiet yamllint
 	yamllint -c .github/linters/yaml-lint.yaml --strict .
 
 ##@ Clean
@@ -214,8 +215,8 @@ vet: ## Run go vet against code.
 	go vet ./...
 
 .PHONY: generate-mocks
-generate-mocks: mockery
-	cd client; mockery --name=Interface
+generate-mocks:
+	cd client; go run github.com/vektra/mockery/v2@v2.21.1
 
 .PHONY: test
 test:

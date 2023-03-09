@@ -1,0 +1,54 @@
+# Default values for ccm-hivelocity.
+# This is a YAML-formatted file.
+# Declare variables to be passed into your templates.
+
+# Increase value for HA.
+replicaCount: 1
+
+image:
+  repository: ghcr.io/hivelocity/ccm-hivelocity-staging # remove -staging after first release.
+  pullPolicy: Always
+  # Overrides the image tag whose default is the chart appVersion.
+  tag: "v1.13.0" # use pinned version after first release.
+
+# Handy for people using a custom image registry.
+imagePullSecrets: []
+
+nameOverride: ""
+fullnameOverride: ""
+
+env:
+  debug: false
+  leaderElect: true
+  hivelocityApiKey: # Hivelocity API Key, fill this only if you don't have a secret already with the key. And set secret.create=true
+
+secret:
+  create: false
+  name: hivelocity # Name of an existing secret
+  key: HIVELOCITY_API_KEY # Name of an existing key for the hivelocity Api Key, in the above specified secret
+
+pdb:
+  enabled: false
+  minAvailable: 1
+
+serviceAccount:
+  # Specifies whether a service account should be created
+  create: true
+  # Annotations to add to the service account
+  annotations: {}
+  # The name of the service account to use.
+  # If not set and create is true, a name is generated using the fullname template
+  name: ""
+
+podAnnotations: {}
+
+resources:
+  requests:
+    cpu: 100m
+    memory: 50Mi
+
+nodeSelector: {}
+
+tolerations: []
+
+affinity: {}

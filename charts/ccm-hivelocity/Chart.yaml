@@ -1,0 +1,11 @@
+apiVersion: v2
+name: ccm-hivelocity
+description: Helm Chart for Hivelocity Cloud Controller Manager
+type: application
+home: https://github.com/hivelocity/hivelocity-cloud-controller-manager/tree/main/charts/ccm-hivelocity
+maintainers:
+  - name: Syself
+    email: info@syself.com
+    url: https://github.com/syself
+appVersion: "latest"
+version: 0.1.0
