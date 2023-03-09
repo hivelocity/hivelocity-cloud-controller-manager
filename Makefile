@@ -100,7 +100,7 @@ modules: ## Runs go mod to ensure modules are up to date.
 	cd $(TOOLS_DIR); go mod tidy
 
 .PHONY: lint
-lint: $(GOLANGCI_LINT) lint-yaml
+lint: $(GOLANGCI_LINT) lint-yaml lint-helm-charts
 	$(GOLANGCI_LINT) run -v
 
 .PHONY: lint-suggestions
@@ -120,12 +120,12 @@ lint-fix: $(GOLANGCI_LINT) ## Lint the Go codebase and run auto-fixers if suppor
 ALL_VERIFY_CHECKS = boilerplate shellcheck modules gen
 
 .PHONY: verify
-verify: lint lint-helm-charts checkmake $(addprefix verify-,$(ALL_VERIFY_CHECKS)) ## Run all verify-* targets
+verify: lint checkmake $(addprefix verify-,$(ALL_VERIFY_CHECKS)) ## Run all verify-* targets
 	@echo "All verify checks passed, congrats!"
 
 .PHONY: lint-helm-charts
 lint-helm-charts:
-	helm template docs/charts/ccm-hivelocity/| go run github.com/yannh/kubeconform/cmd/kubeconform@latest
+	helm template charts/ccm-hivelocity/| go run github.com/yannh/kubeconform/cmd/kubeconform@latest
 
 .PHONY: checkmake
 checkmake:

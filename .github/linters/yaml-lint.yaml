@@ -5,7 +5,7 @@ ignore: |
   config/rbac/**/*.yaml
   config/webhook/**/*.yaml
   test/e2e/data/**/*.yaml
-  docs/charts/**/*.yaml
+  charts/**/*.yaml
 rules:
   braces:
     min-spaces-inside: 0
