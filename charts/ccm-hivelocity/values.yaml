@@ -9,7 +9,7 @@ image:
   repository: ghcr.io/hivelocity/ccm-hivelocity-staging # remove -staging after first release.
   pullPolicy: Always
   # Overrides the image tag whose default is the chart appVersion.
-  tag: "v1.13.0" # use pinned version after first release.
+  tag: "latest" # use pinned version after first release.
 
 # Handy for people using a custom image registry.
 imagePullSecrets: []
