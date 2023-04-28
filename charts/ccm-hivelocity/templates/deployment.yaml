@@ -51,7 +51,7 @@ spec:
           image: "{{ .Values.image.repository }}:{{ .Values.image.tag | default .Chart.AppVersion }}"
           imagePullPolicy: {{ .Values.image.pullPolicy }}
           command:
-            - "/bin/hivelocity-cloud-controller-manager"
+            - "/manager"
             - "--cloud-provider=hivelocity"
             - "--leader-elect={{ .Values.env.leaderElect }}"
             - "--allow-untagged-cloud"
