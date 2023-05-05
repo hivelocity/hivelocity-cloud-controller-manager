@@ -39,19 +39,19 @@ func Test_getInstanceTypeFromTags(t *testing.T) {
 		},
 		{
 			name: "invalid label value will be skipped",
-			tags: []string{"instance-type=&"},
+			tags: []string{"caphv-device-type=&"},
 			want: "",
 			err:  ErrInvalidLabelValue,
 		},
 		{
 			name: "valid label value will be used",
-			tags: []string{"foo", "instance-type=abc", "bar", "key=value"},
+			tags: []string{"foo", "caphv-device-type=abc", "bar", "key=value"},
 			want: "abc",
 			err:  nil,
 		},
 		{
 			name: "two labels",
-			tags: []string{"instance-type=abc", "instance-type=abc"},
+			tags: []string{"caphv-device-type=abc", "caphv-device-type=abc"},
 			want: "",
 			err:  ErrMoreThanOneTagFound,
 		},

@@ -26,22 +26,22 @@ import (
 
 var (
 
-	// ErrMoreThanOneTagFound gets returned if more than one instance-type tag was found via the HV API.
-	ErrMoreThanOneTagFound = fmt.Errorf("more than one instance-type tag found")
+	// ErrMoreThanOneTagFound gets returned if more than one caphv-device-type tag was found via the HV API.
+	ErrMoreThanOneTagFound = fmt.Errorf("more than one caphv-device-type tag found")
 
 	// ErrInvalidLabelValue gets returned if the HV tag contains a value which is an invalid K8s label.
 	ErrInvalidLabelValue = fmt.Errorf("invalid label value")
 
-	// ErrNoInstanceTypeFound gets returned if no instance-type tag was found via the HV API.
-	ErrNoInstanceTypeFound = fmt.Errorf("no instance-type tag found")
+	// ErrNoInstanceTypeFound gets returned if no caphv-device-type tag was found via the HV API.
+	ErrNoInstanceTypeFound = fmt.Errorf("no caphv-device-type tag found")
 )
 
-// GetInstanceTypeFromTags is a utility method to read the instance-type
+// GetInstanceTypeFromTags is a utility method to read the caphv-device-type
 // from a slice of strings.
 // The slice is usually from the Hivelocity API of a device.
-// Example: {"instance-type=foo", "other-label"} would return "foo".
+// Example: {"caphv-device-type=foo", "other-label"} would return "foo".
 func GetInstanceTypeFromTags(tags []string) (string, error) {
-	prefix := "instance-type="
+	prefix := "caphv-device-type="
 	instanceTypes := make([]string, 0, 1)
 	for _, tag := range tags {
 		if !strings.HasPrefix(tag, prefix) {
@@ -65,7 +65,7 @@ func GetInstanceTypeFromTags(tags []string) (string, error) {
 
 	if errs := validation.IsValidLabelValue(instanceType); len(errs) != 0 {
 		return "", fmt.Errorf("[GetInstanceTypeFromTags] Hivelocity tag is no valid K8s label. "+
-			"errors %q, instance-type %q: %w",
+			"errors %q, caphv-device-type %q: %w",
 			strings.Join(errs, "; "),
 			instanceType,
 			ErrInvalidLabelValue,
