@@ -183,7 +183,7 @@ func (i2 *HVInstancesV2) InstanceMetadata(
 		)
 	}
 
-	// HV tag. Example "instance-type=abc".
+	// HV tag. Example "caphv-device-type=abc".
 	instanceType, err := hvutils.GetInstanceTypeFromTags(device.Tags)
 	if err != nil {
 		return nil, fmt.Errorf(

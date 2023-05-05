@@ -96,7 +96,7 @@ func standardMocks(m *mocks.Interface) {
 			OrderId:                  0,
 			OsName:                   "",
 			ProductId:                0,
-			Tags:                     []string{"instance-type=bare-metal-x"},
+			Tags:                     []string{"caphv-device-type=bare-metal-x"},
 		},
 		nil)
 
