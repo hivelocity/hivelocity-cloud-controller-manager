@@ -97,7 +97,6 @@ ensure-boilerplate: ## Ensures that a boilerplate exists in each file by adding 
 .PHONY: modules
 modules: ## Runs go mod to ensure modules are up to date.
 	go mod tidy
-	cd $(TOOLS_DIR); go mod tidy
 
 .PHONY: lint
 lint: $(GOLANGCI_LINT) lint-yaml lint-helm-charts
@@ -132,8 +131,8 @@ checkmake:
 	go run github.com/mrtazz/checkmake/cmd/checkmake@0.2.1 Makefile
 
 .PHONY: verify-modules
-verify-modules: modules  ## Verify go modules are up to date
-	@if !(git diff --quiet HEAD -- go.sum go.mod $(TOOLS_DIR)/go.mod $(TOOLS_DIR)/go.sum $(TEST_DIR)/go.mod $(TEST_DIR)/go.sum); then \
+verify-modules: modules ## Verify go modules are up to date
+	@if !(git diff --quiet HEAD -- go.sum go.mod); then \
 		git diff | cat; \
 		echo "go module files are out of date"; exit 1; \
 	fi
