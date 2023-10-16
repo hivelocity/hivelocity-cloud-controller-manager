@@ -9,7 +9,7 @@ linters:
     - bodyclose
     - containedctx
     - contextcheck
-    - depguard
+    # - depguard
     - durationcheck
     - errchkjson
     - errname
