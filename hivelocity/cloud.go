@@ -36,12 +36,13 @@ type cloud struct {
 const (
 	hivelocityAPIKeyENVVar = "HIVELOCITY_API_KEY" // #nosec G101
 	providerName           = "hivelocity"
-	providerVersion        = "v0.0.1"
 )
 
-var _ cloudprovider.Interface = (*cloud)(nil)
-
-var errEnvVarMissing = fmt.Errorf("environment variable %q is missing or empty", hivelocityAPIKeyENVVar)
+var (
+	providerVersion                          = "dev"
+	_                cloudprovider.Interface = (*cloud)(nil)
+	errEnvVarMissing                         = fmt.Errorf("environment variable %q is missing or empty", hivelocityAPIKeyENVVar)
+)
 
 func init() {
 	cloudprovider.RegisterCloudProvider(providerName, func(config io.Reader) (cloudprovider.Interface, error) {
