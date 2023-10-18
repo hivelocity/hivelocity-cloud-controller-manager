@@ -152,7 +152,16 @@ func (i2 *HVInstancesV2) InstanceExists(ctx context.Context, node *corev1.Node) 
 		return false, fmt.Errorf("%s: %w", op, err)
 	}
 
-	return device != nil, nil
+	if device == nil {
+		return false, nil
+	}
+
+	name, err := hvutils.GetMachineNameFromTags(device.Tags)
+	if err != nil {
+		return false, nil //nolint:nilerr // we ignore the device if there is no such label available.
+	}
+
+	return name == node.GetName(), nil
 }
 
 // InstanceShutdown returns true if the instance is shutdown according to the cloud provider.
