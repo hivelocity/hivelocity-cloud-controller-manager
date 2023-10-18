@@ -40,6 +40,32 @@ func (_m *Interface) GetBareMetalDevice(ctx context.Context, deviceID int32) (*s
 	return r0, r1
 }
 
+// ListDevices provides a mock function with given fields: _a0
+func (_m *Interface) ListDevices(_a0 context.Context) ([]swagger.BareMetalDevice, error) {
+	ret := _m.Called(_a0)
+
+	var r0 []swagger.BareMetalDevice
+	var r1 error
+	if rf, ok := ret.Get(0).(func(context.Context) ([]swagger.BareMetalDevice, error)); ok {
+		return rf(_a0)
+	}
+	if rf, ok := ret.Get(0).(func(context.Context) []swagger.BareMetalDevice); ok {
+		r0 = rf(_a0)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).([]swagger.BareMetalDevice)
+		}
+	}
+
+	if rf, ok := ret.Get(1).(func(context.Context) error); ok {
+		r1 = rf(_a0)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
 type mockConstructorTestingTNewInterface interface {
 	mock.TestingT
 	Cleanup(func())

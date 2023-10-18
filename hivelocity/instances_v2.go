@@ -23,6 +23,7 @@ import (
 	"strconv"
 	"strings"
 
+	hv "github.com/hivelocity/hivelocity-client-go/client"
 	"github.com/hivelocity/hivelocity-cloud-controller-manager/client"
 	"github.com/hivelocity/hivelocity-cloud-controller-manager/pkg/hvutils"
 	corev1 "k8s.io/api/core/v1"
@@ -36,9 +37,13 @@ type HVInstancesV2 struct {
 
 var _ cloudprovider.InstancesV2 = &HVInstancesV2{}
 
-var errUnknownPowerStatus = errors.New("unknown PowerStatus")
+var (
+	errNodeIsNil = errors.New("node is nil")
 
-var errNodeIsNil = errors.New("node is nil")
+	errUnknownPowerStatus = errors.New("unknown PowerStatus")
+
+	errNoDeviceFound = errors.New("no device found")
+)
 
 var (
 	errMissingProviderPrefix = fmt.Errorf(
@@ -82,60 +87,93 @@ func getHivelocityDeviceIDFromNode(node *corev1.Node) (int32, error) {
 	return int32(deviceID), nil
 }
 
+// lookUpDevice looks for device via Hivelocity API if provider ID is present otherwise look for machine name label
+// present in the devices (caphv-machine-name=foo).
+func (i2 *HVInstancesV2) lookUpDevice(ctx context.Context, node *corev1.Node) (device *hv.BareMetalDevice, err error) {
+	if node.Spec.ProviderID != "" {
+		deviceID, err := getHivelocityDeviceIDFromNode(node)
+		if err != nil {
+			return nil, fmt.Errorf(
+				"[lookUpDevice] getHivelocityDeviceIDFromNode() failed. node %q: %w",
+				node.GetName(),
+				err,
+			)
+		}
+		device, err = i2.client.GetBareMetalDevice(ctx, deviceID)
+		if errors.Is(err, client.ErrNoSuchDevice) {
+			return nil, nil //nolint:nilnil // we ignore the error if no device is found.
+		}
+		if err != nil {
+			return nil, fmt.Errorf(
+				"[InstanceExists] GetBareMetalDevice() failed. node %q, deviceID %d: %w",
+				node.GetName(),
+				deviceID,
+				err,
+			)
+		}
+	} else {
+		devices, err := i2.client.ListDevices(ctx)
+		if err != nil {
+			return nil, fmt.Errorf(
+				"[InstanceExists] ListDevices() failed. node %q: %w",
+				node.GetName(),
+				err,
+			)
+		}
+
+		for i := range devices {
+			device := devices[i]
+			name, err := hvutils.GetMachineNameFromTags(device.Tags)
+			if err != nil {
+				continue
+			}
+
+			if name == node.GetName() {
+				return &device, nil
+			}
+		}
+	}
+
+	return device, nil
+}
+
 // InstanceExists returns true if the instance for the given node exists according to the cloud provider.
 // Use the node.name or node.spec.providerID field to find the node in the cloud provider.
 // Implements cloudprovider.InstancesV2.InstanceExists.
 func (i2 *HVInstancesV2) InstanceExists(ctx context.Context, node *corev1.Node) (bool, error) {
+	const op = "hivelocity/instancesv2.InstanceExists"
+
 	if node == nil {
 		return false, errNodeIsNil
 	}
-	deviceID, err := getHivelocityDeviceIDFromNode(node)
+
+	device, err := i2.lookUpDevice(ctx, node)
 	if err != nil {
-		return false, fmt.Errorf(
-			"[InstanceExists] getHivelocityDeviceIDFromNode() failed. node %q: %w",
-			node.GetName(),
-			err,
-		)
+		return false, fmt.Errorf("%s: %w", op, err)
 	}
-	_, err = i2.client.GetBareMetalDevice(ctx, deviceID)
-	if errors.Is(err, client.ErrNoSuchDevice) {
-		return false, nil
-	}
-	if err != nil {
-		return false, fmt.Errorf(
-			"[InstanceExists] GetBareMetalDevice() failed. node %q, deviceID %d: %w",
-			node.GetName(),
-			deviceID,
-			err,
-		)
-	}
-	return true, nil
+
+	return device != nil, nil
 }
 
 // InstanceShutdown returns true if the instance is shutdown according to the cloud provider.
 // Use the node.name or node.spec.providerID field to find the node in the cloud provider.
 // Implements cloudprovider.InstancesV2.InstanceShutdown.
 func (i2 *HVInstancesV2) InstanceShutdown(ctx context.Context, node *corev1.Node) (bool, error) {
+	const op = "hivelocity/instancesv2.InstanceShutdown"
+
 	if node == nil {
 		return false, errNodeIsNil
 	}
-	deviceID, err := getHivelocityDeviceIDFromNode(node)
+
+	device, err := i2.lookUpDevice(ctx, node)
 	if err != nil {
-		return false, fmt.Errorf(
-			"[InstanceShutdown] getHivelocityDeviceIDFromNode() failed. node %q: %w",
-			node.GetName(),
-			err,
-		)
+		return false, fmt.Errorf("%s: %w", op, err)
 	}
-	device, err := i2.client.GetBareMetalDevice(ctx, deviceID)
-	if err != nil {
-		return false, fmt.Errorf(
-			"[InstanceShutdown] GetBareMetalDevice() failed. deviceID %d, node %q: %w",
-			deviceID,
-			node.GetName(),
-			err,
-		)
+
+	if device == nil {
+		return false, errNoDeviceFound
 	}
+
 	switch device.PowerStatus {
 	case "ON":
 		return false, nil
@@ -145,7 +183,7 @@ func (i2 *HVInstancesV2) InstanceShutdown(ctx context.Context, node *corev1.Node
 		return false, fmt.Errorf(
 			"[InstanceShutdown] unknown PowerStatus %q. deviceID %d, node %q: %w",
 			device.PowerStatus,
-			deviceID,
+			device.DeviceId,
 			node.GetName(),
 			errUnknownPowerStatus,
 		)
@@ -162,25 +200,19 @@ func (i2 *HVInstancesV2) InstanceMetadata(
 	ctx context.Context,
 	node *corev1.Node,
 ) (*cloudprovider.InstanceMetadata, error) {
+	const op = "hivelocity/instancesv2.InstanceMetadata"
+
 	if node == nil {
 		return nil, errNodeIsNil
 	}
-	deviceID, err := getHivelocityDeviceIDFromNode(node)
+
+	device, err := i2.lookUpDevice(ctx, node)
 	if err != nil {
-		return nil, fmt.Errorf(
-			"[InstanceMetadata] getHivelocityDeviceIDFromNode() failed. node %q: %w",
-			node.GetName(),
-			err,
-		)
+		return nil, fmt.Errorf("%s: %w", op, err)
 	}
-	device, err := i2.client.GetBareMetalDevice(ctx, deviceID)
-	if err != nil {
-		return nil, fmt.Errorf(
-			"[InstanceMetadata] GetBareMetalDevice() failed. node %q, deviceID %d: %w",
-			node.GetName(),
-			deviceID,
-			err,
-		)
+
+	if device == nil {
+		return nil, errNoDeviceFound
 	}
 
 	// HV tag. Example "caphv-device-type=abc".
@@ -189,13 +221,13 @@ func (i2 *HVInstancesV2) InstanceMetadata(
 		return nil, fmt.Errorf(
 			"InstanceMetadata(): GetInstanceTypeFromTags() failed. node %q, deviceID %d: %w",
 			node.GetName(),
-			deviceID,
+			device.DeviceId,
 			err,
 		)
 	}
 
 	metaData := cloudprovider.InstanceMetadata{
-		ProviderID:   strconv.Itoa(int(deviceID)),
+		ProviderID:   strconv.Itoa(int(device.DeviceId)),
 		InstanceType: instanceType,
 		NodeAddresses: []corev1.NodeAddress{{
 			Type:    "ExternalIP",

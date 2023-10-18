@@ -34,6 +34,12 @@ var (
 
 	// ErrNoInstanceTypeFound gets returned if no caphv-device-type tag was found via the HV API.
 	ErrNoInstanceTypeFound = fmt.Errorf("no caphv-device-type tag found")
+
+	// ErrMoreThanOneNameFound gets returned if more than one caphv-machine-name tag was found via the HV API.
+	ErrMoreThanOneNameFound = fmt.Errorf("more than one caphv-machine-name tag found")
+
+	// ErrNoMachineNameFound gets returned if no caphv-machine-name tag was found via the HV API.
+	ErrNoMachineNameFound = fmt.Errorf("no caphv-machine-name tag found")
 )
 
 // GetInstanceTypeFromTags is a utility method to read the caphv-device-type
@@ -72,4 +78,35 @@ func GetInstanceTypeFromTags(tags []string) (string, error) {
 		)
 	}
 	return instanceType, nil
+}
+
+// GetMachineNameFromTags is a utility method to read the caphv-machine-name
+// from a slice of strings.
+// The slice is usually from the Hivelocity API of a device.
+// Example: {"caphv-machine-name=foo", "other-label"} would return "foo".
+func GetMachineNameFromTags(tags []string) (string, error) {
+	prefix := "caphv-machine-name="
+	machineNames := make([]string, 0, 1)
+	for _, tag := range tags {
+		if !strings.HasPrefix(tag, prefix) {
+			continue
+		}
+
+		machineName := strings.TrimSpace(strings.TrimPrefix(tag, prefix))
+		machineNames = append(machineNames, machineName)
+	}
+
+	if len(machineNames) == 0 {
+		return "", ErrNoMachineNameFound
+	}
+
+	if len(machineNames) > 1 {
+		return "", fmt.Errorf(
+			"[GetMachineNameFromTags] more than one machine name. machineNames %v: %w",
+			machineNames,
+			ErrMoreThanOneNameFound,
+		)
+	}
+
+	return machineNames[0], nil
 }

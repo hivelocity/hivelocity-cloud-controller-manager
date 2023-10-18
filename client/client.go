@@ -32,6 +32,7 @@ import (
 // is easier.
 type Interface interface {
 	GetBareMetalDevice(ctx context.Context, deviceID int32) (*hv.BareMetalDevice, error)
+	ListDevices(context.Context) ([]hv.BareMetalDevice, error)
 }
 
 // Client implements the Interface interface.
@@ -98,6 +99,29 @@ func (c *Client) GetBareMetalDevice(
 		"[GetBareMetalDevice] GetBareMetalDeviceIdResource failed. StatusCode %d, deviceID %q: %w",
 		response.StatusCode,
 		deviceID,
+		err,
+	)
+}
+
+// ListDevices lists all devices via Hivelocity API.
+func (c *Client) ListDevices(ctx context.Context) ([]hv.BareMetalDevice, error) {
+	devices, response, err := c.client.BareMetalDevicesApi.GetBareMetalDeviceResource(ctx, nil)
+	if err == nil {
+		return devices, nil
+	}
+
+	var swaggerErr *hv.GenericSwaggerError
+	if !errors.As(err, swaggerErr) {
+		return nil, fmt.Errorf(
+			"[ListDevices] unknown error during GetBareMetalDeviceResource. StatusCode %d: %w",
+			response.StatusCode,
+			err,
+		)
+	}
+
+	return nil, fmt.Errorf(
+		"[ListDevices] GetBareMetalDeviceResource failed. StatusCode %d: %w",
+		response.StatusCode,
 		err,
 	)
 }
