@@ -35,7 +35,8 @@ const (
 	unknownDeviceID = 9999999
 	invalidDeviceID = 999999999999999999
 
-	region = "LAX2"
+	region   = "LAX2"
+	nodeName = "myNode"
 )
 
 func Test_getHivelocityDeviceIDFromNode(t *testing.T) {
@@ -57,7 +58,7 @@ func Test_getHivelocityDeviceIDFromNode(t *testing.T) {
 		},
 	}
 	for _, tt := range tests {
-		node := newNode(tt.providerID)
+		node := newNode(tt.providerID, nodeName)
 		gotProviderID, gotErr := getHivelocityDeviceIDFromNode(node)
 		msg := fmt.Sprintf("Input: providerID=%q", tt.providerID)
 		if tt.wantErr == nil {
@@ -69,7 +70,7 @@ func Test_getHivelocityDeviceIDFromNode(t *testing.T) {
 	}
 }
 
-func newNode(providerID string) *corev1.Node {
+func newNode(providerID, nodeName string) *corev1.Node {
 	var node corev1.Node
 
 	if providerID != "" {
@@ -79,7 +80,7 @@ func newNode(providerID string) *corev1.Node {
 			},
 		}
 	}
-	node.SetName("myNode")
+	node.SetName(nodeName)
 
 	return &node
 }
@@ -103,7 +104,7 @@ func standardMocks(m *mocks.Interface) {
 			OrderId:                  0,
 			OsName:                   "",
 			ProductId:                0,
-			Tags:                     []string{"caphv-device-type=bare-metal-x"},
+			Tags:                     []string{"caphv-device-type=bare-metal-x", "caphv-machine-name=myNode"},
 		},
 		nil)
 
@@ -145,36 +146,47 @@ func Test_InstanceExists(t *testing.T) {
 
 	tests := []struct {
 		deviceID int64
+		nodeName string
 		wantBool bool
 		wantErr  error
 	}{
 		{
 			deviceID: dummyDeviceID,
+			nodeName: nodeName,
 			wantBool: true,
 			wantErr:  nil,
 		},
 		{
 			deviceID: unknownDeviceID,
+			nodeName: nodeName,
 			wantBool: false,
 			wantErr:  nil,
 		},
 		{
 			deviceID: invalidDeviceID,
+			nodeName: nodeName,
 			wantBool: false,
 			wantErr:  errFailedToConvertProviderID,
 		},
 		{
 			deviceID: 0,
+			nodeName: nodeName,
 			wantBool: true,
+			wantErr:  nil,
+		},
+		{
+			deviceID: dummyDeviceID,
+			nodeName: "unknown",
+			wantBool: false,
 			wantErr:  nil,
 		},
 	}
 	for _, tt := range tests {
 		var node *corev1.Node
 		if tt.deviceID == 0 {
-			node = newNode("")
+			node = newNode("", tt.nodeName)
 		} else {
-			node = newNode(fmt.Sprintf("hivelocity://%d", tt.deviceID))
+			node = newNode(fmt.Sprintf("hivelocity://%d", tt.deviceID), tt.nodeName)
 		}
 
 		gotBool, gotErr := i2.InstanceExists(ctx, node)
@@ -221,9 +233,9 @@ func Test_InstanceShutdown(t *testing.T) {
 	for _, tt := range tests {
 		var node *corev1.Node
 		if tt.deviceID == 0 {
-			node = newNode("")
+			node = newNode("", nodeName)
 		} else {
-			node = newNode(fmt.Sprintf("hivelocity://%d", tt.deviceID))
+			node = newNode(fmt.Sprintf("hivelocity://%d", tt.deviceID), nodeName)
 		}
 
 		gotBool, gotErr := i2.InstanceShutdown(ctx, node)
@@ -292,9 +304,9 @@ func Test_InstanceMetadata(t *testing.T) {
 	for _, tt := range tests {
 		var node *corev1.Node
 		if tt.deviceID == 0 {
-			node = newNode("")
+			node = newNode("", nodeName)
 		} else {
-			node = newNode(fmt.Sprintf("hivelocity://%d", tt.deviceID))
+			node = newNode(fmt.Sprintf("hivelocity://%d", tt.deviceID), nodeName)
 		}
 
 		gotMetaData, gotErr := i2.InstanceMetadata(ctx, node)
