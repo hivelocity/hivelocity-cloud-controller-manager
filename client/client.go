@@ -24,8 +24,14 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
+	"net/http"
+	"regexp"
+	"runtime/debug"
+	"strings"
 
+	"github.com/go-logr/logr"
 	hv "github.com/hivelocity/hivelocity-client-go/client"
+	ctrl "sigs.k8s.io/controller-runtime"
 )
 
 // Interface is a wrapper of hv.APIClient. In this way, mocking (for tests)
@@ -45,9 +51,38 @@ var _ Interface = (*Client)(nil)
 // ErrNoSuchDevice means that no device was found via the Hivelocity API.
 var ErrNoSuchDevice = errors.New("no such device")
 
+// LoggingTransport is a struct for creating new logger for Hivelocity API.
+type LoggingTransport struct {
+	roundTripper http.RoundTripper
+	log          logr.Logger
+}
+
+var replaceHex = regexp.MustCompile(`0x[0123456789abcdef]+`)
+
+// RoundTrip is used for logging api calls to Hivelocity API.
+func (lt *LoggingTransport) RoundTrip(req *http.Request) (resp *http.Response, err error) {
+	stack := replaceHex.ReplaceAllString(string(debug.Stack()), "0xX")
+	stack = strings.ReplaceAll(stack, "\n", "\\n")
+
+	resp, err = lt.roundTripper.RoundTrip(req)
+	if err != nil {
+		lt.log.V(1).Info("hivelocity API. Error.", "err", err, "method", req.Method, "url", req.URL, "stack", stack)
+		return resp, fmt.Errorf("failed to RoundTrip: %w", err)
+	}
+	lt.log.V(1).Info("hivelocity API called.", "statusCode", resp.StatusCode, "method", req.Method, "url", req.URL, "stack", stack)
+	return resp, nil
+}
+
 // NewClient creates a struct which implements the Client interface.
 func NewClient(apiKey string) *Client {
 	config := hv.NewConfiguration()
+	config.HTTPClient = &http.Client{
+		Transport: &LoggingTransport{
+			roundTripper: http.DefaultTransport,
+			log:          ctrl.Log.WithName("Hivelocity-api"),
+		},
+	}
+
 	config.AddDefaultHeader("X-API-KEY", apiKey)
 	apiClient := hv.NewAPIClient(config)
 	return &Client{client: apiClient}
@@ -95,6 +130,10 @@ func (c *Client) GetBareMetalDevice(
 		return nil, ErrNoSuchDevice
 	}
 
+	if err := response.Body.Close(); err != nil {
+		return nil, fmt.Errorf("failed to close response body: %w", err)
+	}
+
 	return nil, fmt.Errorf(
 		"[GetBareMetalDevice] GetBareMetalDeviceIdResource failed. StatusCode %d, deviceID %q: %w",
 		response.StatusCode,
@@ -117,6 +156,10 @@ func (c *Client) ListDevices(ctx context.Context) ([]hv.BareMetalDevice, error) 
 			response.StatusCode,
 			err,
 		)
+	}
+
+	if err := response.Body.Close(); err != nil {
+		return nil, fmt.Errorf("failed to close response body: %w", err)
 	}
 
 	return nil, fmt.Errorf(
