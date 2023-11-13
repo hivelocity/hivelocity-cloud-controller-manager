@@ -13,7 +13,7 @@
 # limitations under the License.
 
 # Build the manager binary
-FROM --platform=${BUILDPLATFORM} docker.io/library/golang:1.19.6@sha256:699d222b61fb23503d3d5f27599dd0dc2f79a037a5e09f74c285045ef5ce2812 as build
+FROM --platform=${BUILDPLATFORM} docker.io/library/golang:1.21.4-bullseye@sha256:ea48852045248675a6f1948acc4c996b1a5de151a77213b936840bf1f82ddd02 as build
 ARG TARGETOS TARGETARCH
 
 COPY . /src/cluster-api-provider-hivelocity
