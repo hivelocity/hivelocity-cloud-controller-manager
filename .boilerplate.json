@@ -1,7 +1,8 @@
 {
   "dirs_to_skip" : [
     "hack/boilerplate/testdata/",
-    "client/mocks"
+    "client/mocks",
+    "vendor"
   ],
   "not_generated_files_to_skip" : [
     "hack/boilerplate/boilerplate.py"

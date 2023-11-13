@@ -4,3 +4,5 @@ bin
 .pre-commit-config.yaml
 node_modules
 .vscode
+# ignore the binary built using go build
+hivelocity-cloud-controller-manager

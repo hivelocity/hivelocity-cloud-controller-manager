@@ -115,9 +115,9 @@ linters-settings:
     # Default: 5
     min-complexity: 4
   staticcheck:
-    go: "1.19"
+    go: "1.21"
   stylecheck:
-    go: "1.19"
+    go: "1.21"
   gocritic:
     enabled-tags:
       - diagnostic
@@ -229,7 +229,7 @@ linters-settings:
           - ["ID"] # AllowList
           - ["VM"] # DenyList
   unused:
-    go: "1.19"
+    go: "1.21"
   usestdlibvars:
     # Suggest the use of http.MethodXX.
     # Default: true
@@ -275,6 +275,6 @@ issues:
   exclude-use-default: false
 run:
   timeout: 10m
-  go: "1.19"
+  go: "1.21"
   allow-parallel-runners: true
   modules-download-mode: readonly
