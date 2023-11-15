@@ -5,7 +5,7 @@ on: # yamllint disable-line rule:truthy
     branches:
       - main
 env:
-  IMAGE_NAME: ccm-hivelocity-staging
+  IMAGE_NAME: hivelocity-cloud-controller-manager-staging
   REGISTRY: ghcr.io/hivelocity
   metadata_flavor: latest=true
   metadata_tags: type=sha,prefix=sha-,format=short
@@ -61,13 +61,13 @@ jobs:
 
       - name: Sign Container Images
         run: |
-          cosign sign --yes ghcr.io/hivelocity/ccm-hivelocity-staging@${{ steps.docker_build_release.outputs.digest }}
+          cosign sign --yes ghcr.io/hivelocity/hivelocity-cloud-controller-manager-staging@${{ steps.docker_build_release.outputs.digest }}
 
       - name: Image Releases digests
         shell: bash
         run: |
           mkdir -p image-digest/
-          echo "ghcr.io/hivelocity/ccm-hivelocity-staging:{{ steps.meta.outputs.tags }}@${{ steps.docker_build_release.outputs.digest }}" >> image-digest/ccm-hivelocity.txt
+          echo "ghcr.io/hivelocity/hivelocity-cloud-controller-manager-staging:{{ steps.meta.outputs.tags }}@${{ steps.docker_build_release.outputs.digest }}" >> image-digest/ccm-hivelocity.txt
 
       # Upload artifact digests
       - name: Upload artifact digests

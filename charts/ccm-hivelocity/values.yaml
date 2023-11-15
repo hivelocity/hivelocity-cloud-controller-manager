@@ -6,7 +6,7 @@
 replicaCount: 1
 
 image:
-  repository: ghcr.io/hivelocity/ccm-hivelocity-staging # remove -staging after first release.
+  repository: ghcr.io/hivelocity/hivelocity-cloud-controller-manager-staging # remove -staging after first release.
   pullPolicy: Always
   # Overrides the image tag whose default is the chart appVersion.
   tag: "latest" # use pinned version after first release.
