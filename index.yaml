@@ -3,6 +3,21 @@ entries:
   ccm-hivelocity:
   - apiVersion: v2
     appVersion: latest
+    created: "2023-11-15T14:46:49.070768196Z"
+    description: Helm Chart for Hivelocity Cloud Controller Manager
+    digest: fec54d567736b2eeb2abe1e208ae48074726c6c9d0597b816afcce55be106dc8
+    home: https://github.com/hivelocity/hivelocity-cloud-controller-manager/tree/main/charts/ccm-hivelocity
+    maintainers:
+    - email: info@syself.com
+      name: Syself
+      url: https://github.com/syself
+    name: ccm-hivelocity
+    type: application
+    urls:
+    - https://github.com/hivelocity/hivelocity-cloud-controller-manager/releases/download/ccm-hivelocity-0.1.4/ccm-hivelocity-0.1.4.tgz
+    version: 0.1.4
+  - apiVersion: v2
+    appVersion: latest
     created: "2023-04-28T08:08:18.364889724Z"
     description: Helm Chart for Hivelocity Cloud Controller Manager
     digest: 6345017ae0d3f96af2bc248a2bd571fb1c6ab9671eae617f60fb94d202416d0c
@@ -46,4 +61,4 @@ entries:
     urls:
     - https://github.com/hivelocity/hivelocity-cloud-controller-manager/releases/download/ccm-hivelocity-0.1.0/ccm-hivelocity-0.1.0.tgz
     version: 0.1.0
-generated: "2023-04-28T08:08:18.364909224Z"
+generated: "2023-11-15T14:46:49.070793597Z"
